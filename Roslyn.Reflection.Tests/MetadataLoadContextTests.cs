@@ -9,8 +9,7 @@ namespace Roslyn.Reflection.Tests
         [Fact]
         public void CanResolveTypeByName()
         {
-            var compilation = CSharpCompilation.Create("something",
-    syntaxTrees: new[] { CSharpSyntaxTree.ParseText(@"
+            var compilation = CreateBasicCompilation(@"
 public class NotAPlugin
 {
 }
@@ -20,9 +19,7 @@ public class Plugin2 : IPlugin { }
 
 public interface IPlugin { }
 
-") },
-    references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
-    });
+");
             var metadataLoadContext = new MetadataLoadContext(compilation);
 
             // Resolve the type by name
@@ -51,5 +48,39 @@ public interface IPlugin { }
             Assert.NotNull(types);
             Assert.Equal(types, new[] { plugin1, plugin2 });
         }
+
+        [Fact]
+        public void CanResolveType()
+        {
+            var compilation = CreateBasicCompilation(@"
+namespace Types.Data
+{
+    public class Disposable : System.IDisposable { }
+}
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type
+            var idisposable = metadataLoadContext.ResolveType<IDisposable>();
+            Assert.NotNull(idisposable);
+
+            // This is using a type symbol in this context (defined below) to avoid using strings
+            var disposable = metadataLoadContext.ResolveType<Types.Data.Disposable>();
+            Assert.NotNull(disposable);
+            Assert.True(idisposable.IsAssignableFrom(disposable));
+        }
+
+        private static CSharpCompilation CreateBasicCompilation(string text)
+        {
+            return CSharpCompilation.Create("something",
+                syntaxTrees: new[] { CSharpSyntaxTree.ParseText(text) },
+                references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
+                });
+        }
     }
+}
+
+namespace Types.Data
+{
+    class Disposable { }
 }
