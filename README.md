@@ -71,7 +71,6 @@ Console.WriteLine();
 
 foreach (var t in metadataLoadContext.Assembly.GetTypes())
 {
-
     if (!t.Equals(controllerType) && controllerType.IsAssignableFrom(t))
     {
         Console.WriteLine($"- {t}");
