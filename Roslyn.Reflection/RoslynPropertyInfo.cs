@@ -4,12 +4,12 @@ using Microsoft.CodeAnalysis;
 
 namespace System.Reflection
 {
-    internal class RoslynProperty : PropertyInfo
+    internal class RoslynPropertyInfo : PropertyInfo
     {
         private readonly IPropertySymbol _property;
         private readonly MetadataLoadContext _metadataLoadContext;
 
-        public RoslynProperty(IPropertySymbol property, MetadataLoadContext metadataLoadContext)
+        public RoslynPropertyInfo(IPropertySymbol property, MetadataLoadContext metadataLoadContext)
         {
             _property = property;
             _metadataLoadContext = metadataLoadContext;
@@ -56,7 +56,7 @@ namespace System.Reflection
             var parameters = new List<ParameterInfo>();
             foreach (var p in _property.Parameters)
             {
-                parameters.Add(new RoslynParameter(p, _metadataLoadContext));
+                parameters.Add(new RoslynParameterInfo(p, _metadataLoadContext));
             }
             return parameters.ToArray();
         }

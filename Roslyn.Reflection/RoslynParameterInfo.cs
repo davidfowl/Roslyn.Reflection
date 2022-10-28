@@ -3,12 +3,12 @@ using Microsoft.CodeAnalysis;
 
 namespace System.Reflection
 {
-    public class RoslynParameter : ParameterInfo
+    public class RoslynParameterInfo : ParameterInfo
     {
         private readonly IParameterSymbol _parameter;
         private readonly MetadataLoadContext _metadataLoadContext;
 
-        public RoslynParameter(IParameterSymbol parameter, MetadataLoadContext metadataLoadContext)
+        public RoslynParameterInfo(IParameterSymbol parameter, MetadataLoadContext metadataLoadContext)
         {
             _parameter = parameter;
             _metadataLoadContext = metadataLoadContext;
@@ -18,6 +18,11 @@ namespace System.Reflection
 
         public override Type ParameterType => _parameter.Type.AsType(_metadataLoadContext);
         public override string Name => _parameter.Name;
+        public override bool HasDefaultValue => _parameter.HasExplicitDefaultValue;
+
+        public override object DefaultValue => HasDefaultValue ? _parameter.ExplicitDefaultValue : null;
+
+        public override int Position => _parameter.Ordinal;
 
         public override IList<CustomAttributeData> GetCustomAttributesData()
         {

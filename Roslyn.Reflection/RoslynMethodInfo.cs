@@ -94,7 +94,7 @@ namespace System.Reflection
             var parameters = new List<ParameterInfo>();
             foreach (var p in _method.Parameters)
             {
-                parameters.Add(new RoslynParameter(p, _metadataLoadContext));
+                parameters.Add(new RoslynParameterInfo(p, _metadataLoadContext));
             }
             return parameters.ToArray();
         }

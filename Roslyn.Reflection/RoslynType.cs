@@ -11,6 +11,7 @@ namespace System.Reflection
         private readonly ITypeSymbol _typeSymbol;
         private readonly MetadataLoadContext _metadataLoadContext;
         private readonly bool _isByRef;
+        private TypeAttributes? _typeAttributes;
 
         public RoslynType(ITypeSymbol typeSymbol, MetadataLoadContext metadataLoadContext, bool isByRef = false)
         {
@@ -85,6 +86,11 @@ namespace System.Reflection
 
         public override ConstructorInfo[] GetConstructors(BindingFlags bindingAttr)
         {
+            if (NamedTypeSymbol is null)
+            {
+                return Array.Empty<ConstructorInfo>();
+            }
+
             var ctors = new List<ConstructorInfo>();
             foreach (var c in NamedTypeSymbol.Constructors)
             {
@@ -113,6 +119,11 @@ namespace System.Reflection
             throw new NotSupportedException();
         }
 
+        public override Type MakeArrayType()
+        {
+            return _metadataLoadContext.Compilation.CreateArrayTypeSymbol(_typeSymbol).AsType(_metadataLoadContext);
+        }
+
         public override Type GetElementType()
         {
             return ArrayTypeSymbol?.ElementType.AsType(_metadataLoadContext);
@@ -135,7 +146,35 @@ namespace System.Reflection
 
         public override FieldInfo[] GetFields(BindingFlags bindingAttr)
         {
-            throw new NotImplementedException();
+            List<FieldInfo> fields = new();
+
+            foreach (ISymbol item in _typeSymbol.GetMembers())
+            {
+                if (item is IFieldSymbol fieldSymbol)
+                {
+                    // Skip if:
+                    if (
+                        // this is a backing field
+                        fieldSymbol.AssociatedSymbol != null ||
+                        // we want a static field and this is not static
+                        (BindingFlags.Static & bindingAttr) != 0 && !fieldSymbol.IsStatic ||
+                        // we want an instance field and this is static or a constant
+                        (BindingFlags.Instance & bindingAttr) != 0 && (fieldSymbol.IsStatic || fieldSymbol.IsConst) ||
+                        // symbol represents an explicitly named tuple element
+                        fieldSymbol.IsExplicitlyNamedTupleElement)
+                    {
+                        continue;
+                    }
+
+                    if ((BindingFlags.Public & bindingAttr) != 0 && item.DeclaredAccessibility == Accessibility.Public ||
+                        (BindingFlags.NonPublic & bindingAttr) != 0)
+                    {
+                        fields.Add(new RoslynFieldInfo(fieldSymbol, _metadataLoadContext));
+                    }
+                }
+            }
+
+            return fields.ToArray();
         }
 
         public override Type GetInterface(string name, bool ignoreCase)
@@ -198,7 +237,7 @@ namespace System.Reflection
             {
                 if (item is IPropertySymbol property)
                 {
-                    properties.Add(new RoslynProperty(property, _metadataLoadContext));
+                    properties.Add(new RoslynPropertyInfo(property, _metadataLoadContext));
                 }
             }
             return properties.ToArray();
@@ -216,14 +255,47 @@ namespace System.Reflection
 
         protected override TypeAttributes GetAttributeFlagsImpl()
         {
-            TypeAttributes flags = default;
-
-            if (_typeSymbol.TypeKind == TypeKind.Interface)
+            if (!_typeAttributes.HasValue)
             {
-                flags |= TypeAttributes.Interface;
+                _typeAttributes = default(TypeAttributes);
+
+                if (_typeSymbol.IsAbstract)
+                {
+                    _typeAttributes |= TypeAttributes.Abstract;
+                }
+
+                if (_typeSymbol.TypeKind == TypeKind.Interface)
+                {
+                    _typeAttributes |= TypeAttributes.Interface;
+                }
+
+                bool isNested = _typeSymbol.ContainingType != null;
+
+                switch (_typeSymbol.DeclaredAccessibility)
+                {
+                    case Accessibility.NotApplicable:
+                    case Accessibility.Private:
+                        _typeAttributes |= isNested ? TypeAttributes.NestedPrivate : TypeAttributes.NotPublic;
+                        break;
+                    case Accessibility.ProtectedAndInternal:
+                        _typeAttributes |= isNested ? TypeAttributes.NestedFamANDAssem : TypeAttributes.NotPublic;
+                        break;
+                    case Accessibility.Protected:
+                        _typeAttributes |= isNested ? TypeAttributes.NestedFamily : TypeAttributes.NotPublic;
+                        break;
+                    case Accessibility.Internal:
+                        _typeAttributes |= isNested ? TypeAttributes.NestedAssembly : TypeAttributes.NotPublic;
+                        break;
+                    case Accessibility.ProtectedOrInternal:
+                        _typeAttributes |= isNested ? TypeAttributes.NestedFamORAssem : TypeAttributes.NotPublic;
+                        break;
+                    case Accessibility.Public:
+                        _typeAttributes |= isNested ? TypeAttributes.NestedPublic : TypeAttributes.Public;
+                        break;
+                }
             }
 
-            return flags;
+            return _typeAttributes.Value;
         }
 
         protected override ConstructorInfo GetConstructorImpl(BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers)
@@ -277,18 +349,18 @@ namespace System.Reflection
         {
             if (c is RoslynType tr)
             {
-                return tr._typeSymbol.AllInterfaces.Contains(_typeSymbol) || (tr.NamedTypeSymbol != null && tr.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol));
+                return tr._typeSymbol.AllInterfaces.Contains(_typeSymbol, SymbolEqualityComparer.Default) || (tr.NamedTypeSymbol != null && tr.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol, SymbolEqualityComparer.Default));
             }
             else if (_metadataLoadContext.ResolveType(c) is RoslynType trr)
             {
-                return trr._typeSymbol.AllInterfaces.Contains(_typeSymbol) || (trr.NamedTypeSymbol != null && trr.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol));
+                return trr._typeSymbol.AllInterfaces.Contains(_typeSymbol, SymbolEqualityComparer.Default) || (trr.NamedTypeSymbol != null && trr.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol, SymbolEqualityComparer.Default));
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return _typeSymbol.GetHashCode();
+            return SymbolEqualityComparer.Default.GetHashCode(_typeSymbol);
         }
 
         public override bool Equals(object o)

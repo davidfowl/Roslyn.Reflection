@@ -13,6 +13,8 @@ namespace System.Reflection
 
         public Assembly Assembly => _compilation.Assembly.AsAssembly(this);
 
+        internal Compilation Compilation => _compilation;
+
         public Type ResolveType(string fullyQualifiedMetadataName)
         {
             return _compilation.GetTypeByMetadataName(fullyQualifiedMetadataName)?.AsType(this);
