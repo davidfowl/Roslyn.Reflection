@@ -5,9 +5,14 @@
         <LangVersion>9.0</LangVersion>
         <PackageDescription></PackageDescription>
         <Authors>David Fowler</Authors>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.4.0-4.final" PrivateAssets="all" />
+        <Update Include="*.cs" Pack="true" PackagePath="shared/dotnet/cs" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.3.1" PrivateAssets="all" />
     </ItemGroup>
 </Project>

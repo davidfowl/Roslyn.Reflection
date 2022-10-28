@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Roslyn.Reflection;
 
 namespace System.Reflection
 {
