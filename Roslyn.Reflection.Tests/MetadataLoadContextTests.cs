@@ -1,6 +1,7 @@
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Types.Data;
 
 namespace Roslyn.Reflection.Tests
 {
@@ -68,6 +69,8 @@ namespace Types.Data
             var disposable = metadataLoadContext.ResolveType<Types.Data.Disposable>();
             Assert.NotNull(disposable);
             Assert.True(idisposable.IsAssignableFrom(disposable));
+            Assert.True(disposable.Equals(typeof(Disposable)));
+            Assert.NotEqual(typeof(Disposable), disposable);
         }
 
         private static CSharpCompilation CreateBasicCompilation(string text)

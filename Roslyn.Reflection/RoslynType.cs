@@ -293,13 +293,13 @@ namespace System.Reflection
 
         public override bool Equals(object o)
         {
-            if (o is RoslynType tw)
+            if (o is RoslynType rt)
             {
-                return _typeSymbol.Equals(tw._typeSymbol, SymbolEqualityComparer.Default);
+                return _typeSymbol.Equals(rt._typeSymbol, SymbolEqualityComparer.Default);
             }
-            else if (o is Type t && _metadataLoadContext.ResolveType(t) is RoslynType tww)
+            else if (o is Type t && _metadataLoadContext.ResolveType(t) is RoslynType rtt)
             {
-                return _typeSymbol.Equals(tww._typeSymbol, SymbolEqualityComparer.Default);
+                return _typeSymbol.Equals(rtt._typeSymbol, SymbolEqualityComparer.Default);
             }
             else if (o is ITypeSymbol ts)
             {
@@ -311,13 +311,13 @@ namespace System.Reflection
 
         public override bool Equals(Type o)
         {
-            if (o is RoslynType tw)
+            if (o is RoslynType rt)
             {
-                return _typeSymbol.Equals(tw._typeSymbol, SymbolEqualityComparer.Default);
+                return _typeSymbol.Equals(rt._typeSymbol, SymbolEqualityComparer.Default);
             }
-            else if (_metadataLoadContext.ResolveType(o) is RoslynType tww)
+            else if (_metadataLoadContext.ResolveType(o) is RoslynType rtt)
             {
-                return _typeSymbol.Equals(tww._typeSymbol, SymbolEqualityComparer.Default);
+                return _typeSymbol.Equals(rtt._typeSymbol, SymbolEqualityComparer.Default);
             }
             return false;
         }
