@@ -15,9 +15,9 @@ namespace System.Reflection
             _method = method;
             _metadataLoadContext = metadataLoadContext;
 
-            if ((method.DeclaredAccessibility & Accessibility.Public) != 0)
+            if (method.IsAbstract)
             {
-                Attributes |= MethodAttributes.Public;
+                Attributes |= MethodAttributes.Abstract | MethodAttributes.Virtual;
             }
 
             if (method.IsStatic)
@@ -25,9 +25,22 @@ namespace System.Reflection
                 Attributes |= MethodAttributes.Static;
             }
 
-            if (method.IsAbstract)
+            if (method.IsVirtual || method.IsOverride)
             {
-                Attributes |= MethodAttributes.Abstract;
+                Attributes |= MethodAttributes.Virtual;
+            }
+
+            switch (method.DeclaredAccessibility)
+            {
+                case Accessibility.Public:
+                    Attributes |= MethodAttributes.Public;
+                    break;
+                case Accessibility.Private:
+                    Attributes |= MethodAttributes.Private;
+                    break;
+                case Accessibility.Internal:
+                    Attributes |= MethodAttributes.Assembly;
+                    break;
             }
         }
 
