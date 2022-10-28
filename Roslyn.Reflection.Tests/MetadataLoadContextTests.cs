@@ -4,10 +4,10 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace Roslyn.Reflection.Tests
 {
-    public class UnitTest1
+    public class MetadataLoadContextTests
     {
         [Fact]
-        public void Test1()
+        public void CanResolveTypeByName()
         {
             var compilation = CSharpCompilation.Create("something",
     syntaxTrees: new[] { CSharpSyntaxTree.ParseText(@"
