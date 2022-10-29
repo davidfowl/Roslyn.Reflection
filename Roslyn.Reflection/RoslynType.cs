@@ -369,7 +369,7 @@ namespace System.Reflection
 
         protected override bool IsPointerImpl()
         {
-            throw new NotImplementedException();
+            return _typeSymbol.Kind == SymbolKind.PointerType;
         }
 
         protected override bool IsPrimitiveImpl()

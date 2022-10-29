@@ -62,6 +62,33 @@ interface IContract { }
         }
 
         [Fact]
+        public void IsPointer()
+        {
+            var compilation = CreateBasicCompilation(@"
+class TypeWithPointers
+{
+    public unsafe void Parse(byte* p) { }
+}
+
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var typeWithPointers = metadataLoadContext.ResolveType("TypeWithPointers");
+
+            Assert.NotNull(typeWithPointers);
+            var methods = typeWithPointers.GetMethods();
+            var method = Assert.Single(methods);
+
+            Assert.Equal("Parse", method.Name);
+
+            var parameter = Assert.Single(method.GetParameters());
+
+            Assert.Equal("p", parameter.Name);
+            Assert.True(parameter.ParameterType.IsPointer);
+        }
+
+        [Fact]
         public void CanResolveNestedTypes()
         {
             var compilation = CreateBasicCompilation(@"
