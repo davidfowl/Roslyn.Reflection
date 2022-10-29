@@ -199,7 +199,15 @@ namespace System.Reflection
 
         public override Type GetInterface(string name, bool ignoreCase)
         {
-            throw new NotImplementedException();
+            var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            foreach (var i in _typeSymbol.Interfaces)
+            {
+                if (i.Name.Equals(name, comparison))
+                {
+                    return i.AsType(_metadataLoadContext);
+                }
+            }
+            return null;
         }
 
         public override Type[] GetInterfaces()

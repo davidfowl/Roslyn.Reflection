@@ -37,6 +37,31 @@ interface IContract { }
         }
 
         [Fact]
+        public void GetInterfaceByName()
+        {
+            var compilation = CreateBasicCompilation(@"
+sealed class Derived : Base { }
+
+abstract class Base : IContract { }
+
+interface IContract { }
+
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var baseType = metadataLoadContext.ResolveType("Base");
+            var interfaceType = metadataLoadContext.ResolveType("IContract");
+
+            Assert.NotNull(baseType);
+            Assert.NotNull(interfaceType);
+
+            Assert.Equal(interfaceType, baseType.GetInterface("IContract"));
+            Assert.Equal(interfaceType, baseType.GetInterface("icontract", ignoreCase: true));
+            Assert.Null(baseType.GetInterface("icontract", ignoreCase: false));
+        }
+
+        [Fact]
         public void CanResolveNestedTypes()
         {
             var compilation = CreateBasicCompilation(@"
