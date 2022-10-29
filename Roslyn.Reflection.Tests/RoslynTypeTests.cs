@@ -11,7 +11,7 @@ namespace Roslyn.Reflection.Tests
         public void InheritanceTypeProperties()
         {
             var compilation = CreateBasicCompilation(@"
-class Derived : Base { }
+sealed class Derived : Base { }
 
 abstract class Base : IContract { }
 
@@ -26,6 +26,7 @@ interface IContract { }
             var interfaceType = metadataLoadContext.ResolveType("IContract");
 
             Assert.NotNull(derivedType);
+            Assert.True(derivedType.IsSealed);
             Assert.NotNull(baseType);
             Assert.True(baseType.IsAbstract);
             Assert.NotNull(interfaceType);

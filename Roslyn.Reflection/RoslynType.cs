@@ -293,6 +293,11 @@ namespace System.Reflection
                     _typeAttributes |= TypeAttributes.Interface;
                 }
 
+                if (_typeSymbol.IsSealed)
+                {
+                    _typeAttributes |= TypeAttributes.Sealed;
+                }
+
                 bool isNested = _typeSymbol.ContainingType != null;
 
                 switch (_typeSymbol.DeclaredAccessibility)
