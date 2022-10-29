@@ -8,6 +8,34 @@ namespace Roslyn.Reflection.Tests
     public class RoslynTypeTests
     {
         [Fact]
+        public void InheritanceTypeProperties()
+        {
+            var compilation = CreateBasicCompilation(@"
+class Derived : Base { }
+
+abstract class Base : IContract { }
+
+interface IContract { }
+
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var derivedType = metadataLoadContext.ResolveType("Derived");
+            var baseType = metadataLoadContext.ResolveType("Base");
+            var interfaceType = metadataLoadContext.ResolveType("IContract");
+
+            Assert.NotNull(derivedType);
+            Assert.NotNull(baseType);
+            Assert.True(baseType.IsAbstract);
+            Assert.NotNull(interfaceType);
+            Assert.True(interfaceType.IsInterface);
+
+            Assert.Equal(derivedType.BaseType, baseType);
+            Assert.Contains(interfaceType, baseType.GetInterfaces());
+        }
+
+        [Fact]
         public void CanResolveNestedTypes()
         {
             var compilation = CreateBasicCompilation(@"
