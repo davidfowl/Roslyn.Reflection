@@ -51,7 +51,7 @@ class TopLevel
 
             var nestedType = pluginType.GetNestedType("Nested");
             Assert.NotNull(nestedType);
-
+            Assert.True(nestedType!.IsNested);
             Assert.Equal("Nested", nestedType!.Name);
         }
 

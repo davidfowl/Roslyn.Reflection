@@ -54,6 +54,8 @@ namespace System.Reflection
 
         public override bool IsConstructedGenericType => NamedTypeSymbol?.IsUnboundGenericType == false;
 
+        public override Type DeclaringType => _typeSymbol.ContainingType?.AsType(_metadataLoadContext);
+
         public override int GetArrayRank()
         {
             return ArrayTypeSymbol.Rank;
