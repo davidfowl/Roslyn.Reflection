@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 
-namespace System.Reflection
+namespace Roslyn.Reflection
 {
     internal class RoslynType : Type
     {
@@ -227,20 +228,25 @@ namespace System.Reflection
 
         public override MethodInfo[] GetMethods(BindingFlags bindingAttr)
         {
-            var methods = new List<MethodInfo>();
+            var predicate = SharedUtilities.GetPredicateFromBindingFlags(bindingAttr);
+
+            List<MethodInfo> methods = null;
+
             foreach (var m in _typeSymbol.GetMembers())
             {
-                // TODO: Efficiency
-                if (m is IMethodSymbol method && !NamedTypeSymbol.Constructors.Contains(method))
+                if (m is not IMethodSymbol method || method.MethodKind == MethodKind.Constructor)
                 {
-                    if ((bindingAttr & BindingFlags.Public) == BindingFlags.Public &&
-                        (m.DeclaredAccessibility & Accessibility.Public) == Accessibility.Public)
-                    {
-                        methods.Add(method.AsMethodInfo(_metadataLoadContext));
-                    }
+                    // Only methods that are not constructors
+                    continue;
+                }
+
+                if (predicate(method))
+                {
+                    methods ??= new();
+                    methods.Add(method.AsMethodInfo(_metadataLoadContext));
                 }
             }
-            return methods.ToArray();
+            return methods?.ToArray() ?? Array.Empty<MethodInfo>();
         }
 
         public override Type GetNestedType(string name, BindingFlags bindingAttr)

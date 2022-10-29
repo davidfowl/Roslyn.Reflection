@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 
-namespace System.Reflection
+namespace Roslyn.Reflection
 {
     internal class RoslynMemberInfo : MemberInfo
     {

@@ -1,6 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
 
-namespace System.Reflection
+namespace Roslyn.Reflection
 {
     public class MetadataLoadContext
     {

@@ -62,6 +62,58 @@ interface IContract { }
         }
 
         [Fact]
+        public void GetMethods()
+        {
+            var compilation = CreateBasicCompilation(@"
+class ThisType
+{
+    public void InstanceMethod() { }
+    string PrivateMethod() => ""Woah"";
+    public static int StaticMethod() => 1;
+}
+
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType = metadataLoadContext.ResolveType("ThisType");
+
+            Assert.NotNull(thisType);
+            var methods = thisType.GetMethods();
+
+            // Private methods don't show up by default
+            Assert.Equal(2, methods.Length);
+
+            Assert.Contains(methods, m => m.Name == "InstanceMethod");
+            Assert.Contains(methods, m => m.Name == "StaticMethod");
+        }
+
+        [Fact]
+        public void GetPrivateMethods()
+        {
+            var compilation = CreateBasicCompilation(@"
+class ThisType
+{
+    public void InstanceMethod() { }
+    string PrivateMethod() => ""Woah"";
+    public static int StaticMethod() => 1;
+}
+
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType = metadataLoadContext.ResolveType("ThisType");
+
+            Assert.NotNull(thisType);
+            var methods = thisType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var method = Assert.Single(methods);
+
+            Assert.Contains("PrivateMethod", method.Name);
+        }
+
+        [Fact]
         public void IsPointer()
         {
             var compilation = CreateBasicCompilation(@"

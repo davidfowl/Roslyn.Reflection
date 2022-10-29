@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
-namespace System.Reflection
+namespace Roslyn.Reflection
 {
     internal class RoslynFieldInfo : FieldInfo
     {

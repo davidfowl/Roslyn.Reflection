@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Roslyn.Reflection;
 
 var compilation = CSharpCompilation.Create("something",
     syntaxTrees: new[] { CSharpSyntaxTree.ParseText(@"
