@@ -23,6 +23,7 @@ public interface IPlugin { }
 ");
             var metadataLoadContext = new MetadataLoadContext(compilation);
 
+            Assert.Equal("something", metadataLoadContext.Assembly.FullName);
             // Resolve the type by name
             var pluginType = metadataLoadContext.ResolveType("IPlugin");
 
@@ -127,6 +128,22 @@ public class ClosedGeneric : Generic<string> { }
             Assert.True(genericType.MakeGenericType(typeof(string)).Equals(closedGenericType.BaseType));
         }
 
+        [Fact]
+        public void CanResolveArrayOfType()
+        {
+            var compilation = CreateBasicCompilation(@"
+public class Thing { }
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type
+            var thingArrayType = metadataLoadContext.ResolveType(typeof(Thing[]));
+
+            Assert.NotNull(thingArrayType);
+            Assert.True(thingArrayType.IsArray);
+            Assert.Equal(typeof(Thing[]).Name, thingArrayType.Name);
+        }
+
         private static CSharpCompilation CreateBasicCompilation(string text)
         {
             return CSharpCompilation.Create("something",
@@ -137,6 +154,7 @@ public class ClosedGeneric : Generic<string> { }
     }
 }
 
+class Thing { }
 class Generic<T> { }
 
 namespace Types.Data

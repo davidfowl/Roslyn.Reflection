@@ -36,7 +36,7 @@ namespace System.Reflection
 
         public override Type UnderlyingSystemType => this;
 
-        public override string Name => _typeSymbol.MetadataName;
+        public override string Name => ArrayTypeSymbol is { } ar ? ar.ElementType.MetadataName + "[]" : _typeSymbol.MetadataName;
 
         public override bool IsGenericType => NamedTypeSymbol?.IsGenericType ?? false;
 
@@ -235,7 +235,11 @@ namespace System.Reflection
 
         public override Type GetNestedType(string name, BindingFlags bindingAttr)
         {
-            throw new NotImplementedException();
+            foreach (var type in _typeSymbol.GetTypeMembers(name))
+            {
+                return type.AsType(_metadataLoadContext);
+            }
+            return null;
         }
 
         public override Type[] GetNestedTypes(BindingFlags bindingAttr)
@@ -365,13 +369,13 @@ namespace System.Reflection
 
         public override bool IsAssignableFrom(Type c)
         {
-            if (c is RoslynType tr)
+            if (c is RoslynType rt)
             {
-                return tr._typeSymbol.AllInterfaces.Contains(_typeSymbol, SymbolEqualityComparer.Default) || (tr.NamedTypeSymbol != null && tr.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol, SymbolEqualityComparer.Default));
+                return rt._typeSymbol.AllInterfaces.Contains(_typeSymbol, SymbolEqualityComparer.Default) || (rt.NamedTypeSymbol != null && rt.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol, SymbolEqualityComparer.Default));
             }
-            else if (_metadataLoadContext.ResolveType(c) is RoslynType trr)
+            else if (_metadataLoadContext.ResolveType(c) is RoslynType rtt)
             {
-                return trr._typeSymbol.AllInterfaces.Contains(_typeSymbol, SymbolEqualityComparer.Default) || (trr.NamedTypeSymbol != null && trr.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol, SymbolEqualityComparer.Default));
+                return rtt._typeSymbol.AllInterfaces.Contains(_typeSymbol, SymbolEqualityComparer.Default) || (rtt.NamedTypeSymbol != null && rtt.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol, SymbolEqualityComparer.Default));
             }
             return false;
         }

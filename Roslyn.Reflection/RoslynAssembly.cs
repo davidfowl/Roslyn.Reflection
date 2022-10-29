@@ -13,6 +13,8 @@ namespace System.Reflection
             _metadataLoadContext = metadataLoadContext;
         }
 
+        public override string FullName => Symbol.Name;
+
         internal IAssemblySymbol Symbol { get; }
 
         public override Type[] GetExportedTypes()
