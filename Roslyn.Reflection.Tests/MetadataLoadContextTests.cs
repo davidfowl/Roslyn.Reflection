@@ -73,6 +73,60 @@ namespace Types.Data
             Assert.NotEqual(typeof(Disposable), disposable);
         }
 
+        [Fact]
+        public void CanResolveGenericTypeByName()
+        {
+            var compilation = CreateBasicCompilation(@"
+public class Generic<T> { }
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type
+            var genericType = metadataLoadContext.ResolveType("Generic`1");
+            Assert.True(genericType.IsGenericType);
+            Assert.True(genericType.IsGenericTypeDefinition);
+            Assert.True(genericType.GetGenericTypeDefinition().Equals(genericType));
+            Assert.NotNull(genericType);
+        }
+
+        [Fact]
+        public void CanResolveGenericTypeByType()
+        {
+            var compilation = CreateBasicCompilation(@"
+public class Generic<T> { }
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type
+            var genericType = metadataLoadContext.ResolveType(typeof(Generic<>));
+            Assert.True(genericType.IsGenericType);
+            Assert.True(genericType.IsGenericTypeDefinition);
+            Assert.True(genericType.GetGenericTypeDefinition().Equals(genericType));
+            Assert.NotNull(genericType);
+        }
+
+        [Fact]
+        public void CanCloseOpenGeneric()
+        {
+            var compilation = CreateBasicCompilation(@"
+public class Generic<T> { }
+public class ClosedGeneric : Generic<string> { } 
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type
+            var genericType = metadataLoadContext.ResolveType(typeof(Generic<>));
+            var closedGenericType = metadataLoadContext.ResolveType("ClosedGeneric");
+
+            Assert.NotNull(closedGenericType);
+            Assert.NotNull(closedGenericType.BaseType);
+            Assert.NotNull(genericType);
+
+            Assert.True(genericType.IsGenericType);
+            Assert.True(genericType.IsGenericTypeDefinition);
+            Assert.True(genericType.MakeGenericType(typeof(string)).Equals(closedGenericType.BaseType));
+        }
+
         private static CSharpCompilation CreateBasicCompilation(string text)
         {
             return CSharpCompilation.Create("something",
@@ -82,6 +136,8 @@ namespace Types.Data
         }
     }
 }
+
+class Generic<T> { }
 
 namespace Types.Data
 {

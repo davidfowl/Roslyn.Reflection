@@ -24,6 +24,11 @@ namespace System.Reflection
 
         public Type ResolveType(Type type)
         {
+            if (type is RoslynType)
+            {
+                return type;
+            }
+
             var resolvedType = _compilation.GetTypeByMetadataName(type.FullName);
 
             if (resolvedType is not null)

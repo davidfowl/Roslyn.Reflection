@@ -24,6 +24,10 @@ public class MyController : ControllerBase
 [Authorize]
 public class AuthController : ControllerBase  { }
 
+public class GenericThing<T> { }
+
+public class AnotherThing : GenericThing<string> { }
+
 namespace Microsoft.AspNetCore.Mvc
 {
     public class ControllerBase { }

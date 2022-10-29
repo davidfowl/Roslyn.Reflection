@@ -1,15 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <PackageId>Roslyn.Reflection.Sources</PackageId>
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>9.0</LangVersion>
         <PackageDescription></PackageDescription>
         <Authors>David Fowler</Authors>
+        <Description>A reflection implementation over the Roslyn Symol APIs</Description>
         <IncludeBuildOutput>false</IncludeBuildOutput>
     </PropertyGroup>
 
     <ItemGroup>
-        <Update Include="*.cs" Pack="true" PackagePath="shared/dotnet/cs" />
+        <Compile Update="*.cs" Pack="true" PackagePath="contentFiles/any/any" />
     </ItemGroup>
     
     <ItemGroup>

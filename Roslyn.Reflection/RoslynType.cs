@@ -44,7 +44,9 @@ namespace System.Reflection
 
         private IArrayTypeSymbol ArrayTypeSymbol => _typeSymbol as IArrayTypeSymbol;
 
-        public override bool IsGenericTypeDefinition => base.IsGenericTypeDefinition;
+        public override bool IsGenericTypeDefinition => IsGenericType && SymbolEqualityComparer.Default.Equals(NamedTypeSymbol, NamedTypeSymbol.ConstructedFrom);
+
+        public override bool IsGenericParameter => _typeSymbol.TypeKind == TypeKind.TypeParameter;
 
         public ITypeSymbol TypeSymbol => _typeSymbol;
 
@@ -122,6 +124,22 @@ namespace System.Reflection
         public override Type MakeArrayType()
         {
             return _metadataLoadContext.Compilation.CreateArrayTypeSymbol(_typeSymbol).AsType(_metadataLoadContext);
+        }
+
+        public override Type MakeGenericType(params Type[] typeArguments)
+        {
+            if (!IsGenericTypeDefinition)
+            {
+                throw new NotSupportedException();
+            }
+
+            var typeSymbols = new ITypeSymbol[typeArguments.Length];
+            for (int i = 0; i < typeArguments.Length; i++)
+            {
+                typeSymbols[i] = _metadataLoadContext.ResolveType(typeArguments[i]).GetTypeSymbol();
+            }
+
+            return NamedTypeSymbol.Construct(typeSymbols).AsType(_metadataLoadContext);
         }
 
         public override Type GetElementType()
