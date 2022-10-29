@@ -28,7 +28,7 @@ namespace Roslyn.Reflection
 
         public static ITypeSymbol GetTypeSymbol(this Type type) => (type as RoslynType)?.TypeSymbol;
 
-        public static IEnumerable<INamedTypeSymbol> BaseTypes(this INamedTypeSymbol typeSymbol)
+        public static IEnumerable<ITypeSymbol> BaseTypes(this ITypeSymbol typeSymbol)
         {
             var t = typeSymbol;
             while (t != null)

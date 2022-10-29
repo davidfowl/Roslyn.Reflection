@@ -228,10 +228,10 @@ namespace Roslyn.Reflection
 
         public override MethodInfo[] GetMethods(BindingFlags bindingAttr)
         {
-            var predicate = SharedUtilities.GetPredicateFromBindingFlags(bindingAttr);
-
             List<MethodInfo> methods = null;
 
+            //foreach (var t in NamedTypeSymbol.BaseTypes())
+            //{
             foreach (var m in _typeSymbol.GetMembers())
             {
                 if (m is not IMethodSymbol method || method.MethodKind == MethodKind.Constructor)
@@ -240,12 +240,17 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
-                if (predicate(method))
+                var flags = SharedUtilities.ComputeBindingFlags(m);
+
+                if ((flags & bindingAttr) != flags)
                 {
-                    methods ??= new();
-                    methods.Add(method.AsMethodInfo(_metadataLoadContext));
+                    continue;
                 }
+
+                methods ??= new();
+                methods.Add(method.AsMethodInfo(_metadataLoadContext));
             }
+            //}
             return methods?.ToArray() ?? Array.Empty<MethodInfo>();
         }
 

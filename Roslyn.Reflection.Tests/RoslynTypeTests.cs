@@ -88,14 +88,21 @@ class ThisType
             Assert.Contains(methods, m => m.Name == "StaticMethod");
         }
 
-        [Fact]
-        public void GetPrivateMethods()
+        [Theory]
+        [InlineData(BindingFlags.Public)]
+        [InlineData(BindingFlags.NonPublic)]
+        [InlineData(BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
+        public void BindingFlagsTest(BindingFlags flags)
         {
             var compilation = CreateBasicCompilation(@"
 class ThisType
 {
     public void InstanceMethod() { }
     string PrivateMethod() => ""Woah"";
+    static string StaticPrivateMethod() => ""Woah"";
     public static int StaticMethod() => 1;
 }
 
@@ -103,14 +110,15 @@ class ThisType
             var metadataLoadContext = new MetadataLoadContext(compilation);
 
             // Resolve the type by name
-            var thisType = metadataLoadContext.ResolveType("ThisType");
+            var thisType0 = metadataLoadContext.ResolveType("ThisType");
+            var thisType1 = typeof(ThisType);
 
-            Assert.NotNull(thisType);
-            var methods = thisType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.NotNull(thisType0);
+            var methods0 = thisType0.GetMethods(flags);
+            // TODO: Should this return types from object?
+            var methods1 = thisType1.GetMethods(flags).Where(m => m.DeclaringType != typeof(object));
 
-            var method = Assert.Single(methods);
-
-            Assert.Contains("PrivateMethod", method.Name);
+            Assert.Equal(methods1.Select(m => m.Name), methods0.Select(m => m.Name));
         }
 
         [Fact]
@@ -194,6 +202,16 @@ class TopLevel
                 syntaxTrees: new[] { CSharpSyntaxTree.ParseText(text) },
                 references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
                 });
+        }
+
+
+        // Keep this in sync with the tests that mirror this type
+        class ThisType
+        {
+            public void InstanceMethod() { }
+            string PrivateMethod() => "Woah";
+            static string StaticPrivateMethod() => "Woah";
+            public static int StaticMethod() => 1;
         }
     }
 }
