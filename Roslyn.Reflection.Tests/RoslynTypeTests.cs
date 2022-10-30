@@ -89,6 +89,31 @@ class ThisType
             Assert.Contains(methods, m => m.Name == "StaticMethod");
         }
 
+        [Fact]
+        public void GetMethodWorks()
+        {
+            var compilation = CreateBasicCompilation(@"
+class ThisType
+{
+    public void InstanceMethod() { }
+    string PrivateMethod() => ""Woah"";
+    public static int StaticMethod() => 1;
+}
+
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType = metadataLoadContext.ResolveType("ThisType");
+
+            Assert.NotNull(thisType);
+            var method = thisType.GetMethod("InstanceMethod");
+
+            Assert.NotNull(method);
+
+            Assert.Contains("InstanceMethod", method!.Name);
+        }
+
         [Theory]
         [InlineData(BindingFlags.Public)]
         [InlineData(BindingFlags.NonPublic)]
@@ -227,7 +252,7 @@ class ThisType
             AssertMembers(expectedMembers, actualMembers);
         }
 
-        private void AssertMembers(IEnumerable<MemberInfo> expectedMembers, IEnumerable<MemberInfo> actualMembers)
+        private static void AssertMembers(IEnumerable<MemberInfo> expectedMembers, IEnumerable<MemberInfo> actualMembers)
         {
             var actualNames = actualMembers.Select(m => m.Name).OrderBy(m => m).ToArray();
             // REVIEW: Why do we need to filter object based members?
@@ -340,7 +365,6 @@ class TopLevel
                 references: new[] { MetadataReference.CreateFromFile(typeof(object).Assembly.Location)
                 });
         }
-
 
         // Keep this in sync with the tests that mirror this type
         class ThisType

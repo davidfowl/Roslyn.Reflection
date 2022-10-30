@@ -76,7 +76,20 @@ namespace Roslyn.Reflection
 
         public override MethodInfo GetBaseDefinition()
         {
-            throw new NotImplementedException();
+            var method = _method;
+
+            // Walk until we find the base definition for this method
+            while (method.OverriddenMethod is not null)
+            {
+                method = method.OverriddenMethod;
+            }
+
+            if (method.Equals(_method, SymbolEqualityComparer.Default))
+            {
+                return this;
+            }
+
+            return method.AsMethodInfo(_metadataLoadContext);
         }
 
         public override object[] GetCustomAttributes(bool inherit)

@@ -450,14 +450,16 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
+                var parameterCount = types?.Length ?? 0;
+
                 // Compare parameter types
-                if (types.Length != method.Parameters.Length)
+                if (parameterCount != method.Parameters.Length)
                 {
                     continue;
                 }
 
                 var valid = true;
-                for (int i = 0; i < types.Length; i++)
+                for (int i = 0; i < parameterCount; i++)
                 {
                     var parameterType = types[i];
                     var parameterTypeSymbol = _metadataLoadContext.ResolveType(parameterType)?.GetTypeSymbol();
