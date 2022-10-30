@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Types.Data;
@@ -93,20 +94,14 @@ class ThisType
         [InlineData(BindingFlags.NonPublic)]
         [InlineData(BindingFlags.Instance)]
         [InlineData(BindingFlags.Public | BindingFlags.Instance)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Instance)]
         [InlineData(BindingFlags.Public | BindingFlags.Static)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static)]
         [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
-        public void BindingFlagsTest(BindingFlags flags)
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)]
+        public void GetMethodsTest(BindingFlags flags)
         {
-            var compilation = CreateBasicCompilation(@"
-class ThisType
-{
-    public void InstanceMethod() { }
-    string PrivateMethod() => ""Woah"";
-    static string StaticPrivateMethod() => ""Woah"";
-    public static int StaticMethod() => 1;
-}
-
-");
+            var compilation = CreateBasicCompilation(ThisTypeText);
             var metadataLoadContext = new MetadataLoadContext(compilation);
 
             // Resolve the type by name
@@ -119,6 +114,60 @@ class ThisType
             var methods1 = thisType1.GetMethods(flags).Where(m => m.DeclaringType != typeof(object));
 
             Assert.Equal(methods1.Select(m => m.Name), methods0.Select(m => m.Name));
+        }
+
+        [Theory]
+        [InlineData(BindingFlags.Public)]
+        [InlineData(BindingFlags.NonPublic)]
+        [InlineData(BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)]
+        public void GetPropertiesTest(BindingFlags flags)
+        {
+            var compilation = CreateBasicCompilation(ThisTypeText);
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType0 = metadataLoadContext.ResolveType("ThisType");
+            var thisType1 = typeof(ThisType);
+
+            Assert.NotNull(thisType0);
+            var properties0 = thisType0.GetProperties(flags);
+            // TODO: Should this return types from object?
+            var properties1 = thisType1.GetProperties(flags).Where(m => m.DeclaringType != typeof(object));
+
+            Assert.Equal(properties0.Select(m => m.Name), properties1.Select(m => m.Name));
+        }
+
+        [Theory]
+        [InlineData(BindingFlags.Public)]
+        [InlineData(BindingFlags.NonPublic)]
+        [InlineData(BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)]
+        public void GetFieldsTest(BindingFlags flags)
+        {
+            var compilation = CreateBasicCompilation(ThisTypeText);
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType0 = metadataLoadContext.ResolveType("ThisType");
+            var thisType1 = typeof(ThisType);
+
+            Assert.NotNull(thisType0);
+            var fields0 = thisType0.GetFields(flags);
+            // Skip compiler generated fields
+            var fields1 = thisType1.GetFields(flags).Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() is null && m.DeclaringType != typeof(object));
+
+            Assert.Equal(fields1.Select(m => m.Name), fields0.Select(m => m.Name));
         }
 
         [Fact]
@@ -154,7 +203,8 @@ class TypeWithPointers
             var compilation = CreateBasicCompilation(@"
 class TopLevel
 {
-  class Nested { }
+  public class Nested { }
+  class PrivateNested { }
 }
 
 ");
@@ -178,7 +228,8 @@ class TopLevel
             var compilation = CreateBasicCompilation(@"
 class TopLevel
 {
-  class Nested { }
+  public class Nested { }
+  class PrivateNested { }
 }
 
 ");
@@ -191,7 +242,11 @@ class TopLevel
             Assert.True(pluginType.IsClass);
 
             var nestedType = pluginType.GetNestedType("Nested");
+            var privateNestedType = pluginType.GetNestedType("Nested", BindingFlags.Public | BindingFlags.Instance);
+
             Assert.NotNull(nestedType);
+            Assert.NotNull(privateNestedType);
+
             Assert.True(nestedType!.IsNested);
             Assert.Equal("Nested", nestedType!.Name);
         }
@@ -208,10 +263,43 @@ class TopLevel
         // Keep this in sync with the tests that mirror this type
         class ThisType
         {
+            private readonly int _privateInstanceField;
+            public readonly int publicInstanceField;
+            private static readonly int privateStaticField;
+            public static readonly int publicStaticField;
+
+
+            public int InstanceProperty { get; set; }
+            public static object? StaticProperty { get; set; }
+            private int PrivateProperty { get; set; }
+            private static object? StaticPrivateProperty { get; set; }
+
+
             public void InstanceMethod() { }
             string PrivateMethod() => "Woah";
             static string StaticPrivateMethod() => "Woah";
             public static int StaticMethod() => 1;
         }
+
+        private const string ThisTypeText = @"
+class ThisType
+{
+    private readonly int _privateInstanceField;
+    public readonly int publicInstanceField;
+    private static readonly int privateStaticField;
+    public static readonly int publicStaticField;
+
+    public int InstanceProperty { get; set; }
+    public static object? StaticProperty { get; set; }
+    private int PrivateProperty { get; set; }
+    private static object? StaticPrivateProperty { get; set; }
+
+
+    public void InstanceMethod() { }
+    string PrivateMethod() => ""Woah"";
+    static string StaticPrivateMethod() => ""Woah"";
+    public static int StaticMethod() => 1;
+}
+";
     }
 }

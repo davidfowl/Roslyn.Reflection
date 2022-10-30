@@ -99,7 +99,9 @@ namespace Roslyn.Reflection
             var ctors = new List<ConstructorInfo>();
             foreach (var c in NamedTypeSymbol.Constructors)
             {
-                if ((bindingAttr & BindingFlags.Static) != BindingFlags.Static && c.IsStatic)
+                var flags = SharedUtilities.ComputeBindingFlags(c);
+
+                if ((flags & bindingAttr) != flags)
                 {
                     continue;
                 }
@@ -169,29 +171,23 @@ namespace Roslyn.Reflection
         {
             List<FieldInfo> fields = new();
 
-            foreach (ISymbol item in _typeSymbol.GetMembers())
+            foreach (var symbol in _typeSymbol.GetMembers())
             {
-                if (item is IFieldSymbol fieldSymbol)
+                var flags = SharedUtilities.ComputeBindingFlags(symbol);
+                if (symbol is IFieldSymbol fieldSymbol)
                 {
                     // Skip if:
-                    if (
-                        // this is a backing field
+                    if (// this is a backing field
                         fieldSymbol.AssociatedSymbol != null ||
-                        // we want a static field and this is not static
-                        (BindingFlags.Static & bindingAttr) != 0 && !fieldSymbol.IsStatic ||
-                        // we want an instance field and this is static or a constant
-                        (BindingFlags.Instance & bindingAttr) != 0 && (fieldSymbol.IsStatic || fieldSymbol.IsConst) ||
                         // symbol represents an explicitly named tuple element
-                        fieldSymbol.IsExplicitlyNamedTupleElement)
+                        fieldSymbol.IsExplicitlyNamedTupleElement ||
+                        // Flags don't match
+                        (flags & bindingAttr) != flags)
                     {
                         continue;
                     }
 
-                    if ((BindingFlags.Public & bindingAttr) != 0 && item.DeclaredAccessibility == Accessibility.Public ||
-                        (BindingFlags.NonPublic & bindingAttr) != 0)
-                    {
-                        fields.Add(new RoslynFieldInfo(fieldSymbol, _metadataLoadContext));
-                    }
+                    fields.Add(new RoslynFieldInfo(fieldSymbol, _metadataLoadContext));
                 }
             }
 
@@ -258,6 +254,12 @@ namespace Roslyn.Reflection
         {
             foreach (var type in _typeSymbol.GetTypeMembers(name))
             {
+                var flags = SharedUtilities.ComputeBindingFlags(type);
+                if ((flags & bindingAttr) != flags)
+                {
+                    continue;
+                }
+
                 return type.AsType(_metadataLoadContext);
             }
             return null;
@@ -268,6 +270,12 @@ namespace Roslyn.Reflection
             var nestedTypes = new List<Type>();
             foreach (var type in _typeSymbol.GetTypeMembers())
             {
+                var flags = SharedUtilities.ComputeBindingFlags(type);
+                if ((flags & bindingAttr) != flags)
+                {
+                    continue;
+                }
+
                 nestedTypes.Add(type.AsType(_metadataLoadContext));
             }
             return nestedTypes.ToArray();
@@ -276,12 +284,20 @@ namespace Roslyn.Reflection
         public override PropertyInfo[] GetProperties(BindingFlags bindingAttr)
         {
             var properties = new List<PropertyInfo>();
-            foreach (var item in _typeSymbol.GetMembers())
+            foreach (var symbol in _typeSymbol.GetMembers())
             {
-                if (item is IPropertySymbol property)
+                if (symbol is not IPropertySymbol property)
                 {
-                    properties.Add(new RoslynPropertyInfo(property, _metadataLoadContext));
+                    continue;
                 }
+
+                var flags = SharedUtilities.ComputeBindingFlags(symbol);
+                if ((flags & bindingAttr) != flags)
+                {
+                    continue;
+                }
+
+                properties.Add(new RoslynPropertyInfo(property, _metadataLoadContext));
             }
             return properties.ToArray();
         }
