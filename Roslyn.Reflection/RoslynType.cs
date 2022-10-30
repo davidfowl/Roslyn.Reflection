@@ -470,7 +470,47 @@ namespace Roslyn.Reflection
 
         protected override PropertyInfo GetPropertyImpl(string name, BindingFlags bindingAttr, Binder binder, Type returnType, Type[] types, ParameterModifier[] modifiers)
         {
-            throw new NotImplementedException();
+            StringComparison comparison = (bindingAttr & BindingFlags.IgnoreCase) == BindingFlags.IgnoreCase
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+            foreach (var symbol in _typeSymbol.GetMembers())
+            {
+                if (symbol is not IPropertySymbol property)
+                {
+                    continue;
+                }
+
+                var flags = SharedUtilities.ComputeBindingFlags(symbol);
+                if ((flags & bindingAttr) != flags)
+                {
+                    continue;
+                }
+
+                if (!property.Name.Equals(name, comparison))
+                {
+                    continue;
+                }
+
+                var returnTypeSymbol = _metadataLoadContext.ResolveType(returnType);
+
+                if (returnTypeSymbol?.Equals(property.Type) == false)
+                {
+                    continue;
+                }
+
+                // Compare parameter types
+                if (types.Length != property.Parameters.Length)
+                {
+                    continue;
+                }
+
+                // TODO: Use parameters
+
+                return property.AsPropertyInfo(_metadataLoadContext);
+
+            }
+            return null;
         }
 
         protected override bool HasElementTypeImpl()

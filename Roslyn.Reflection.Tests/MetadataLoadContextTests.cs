@@ -162,6 +162,56 @@ public class Thing { }
             Assert.Equal(typeof(Thing[]).Name, thingArrayType.Name);
         }
 
+        [Fact]
+        public void CanResolveMethodInfo()
+        {
+            var compilation = CreateBasicCompilation(@"
+class TypeWithMembers
+{
+    public int MyProperty { get; set; }
+
+    public void Foo(int x) { }
+    public void Foo(double y) { }
+}
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type
+            var method = typeof(TypeWithMembers).GetMethod("Foo", BindingFlags.Public | BindingFlags.Instance, new[] { typeof(int) });
+
+            Assert.NotNull(method);
+
+            var methodInContext = metadataLoadContext.ResolveMember(method);
+
+            Assert.NotNull(methodInContext);
+            Assert.NotNull(methodInContext.GetMethodSymbol());
+        }
+
+        [Fact]
+        public void CanResolvePropertyInfo()
+        {
+            var compilation = CreateBasicCompilation(@"
+class TypeWithMembers
+{
+    public int MyProperty { get; set; }
+
+    public void Foo(int x) { }
+    public void Foo(double y) { }
+}
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type
+            var propertyInfo = typeof(TypeWithMembers).GetProperty("MyProperty", BindingFlags.Public | BindingFlags.Instance);
+
+            Assert.NotNull(propertyInfo);
+
+            var propertyInContext = metadataLoadContext.ResolveMember(propertyInfo);
+
+            Assert.NotNull(propertyInContext);
+            Assert.NotNull(propertyInContext.GetPropertySymbol());
+        }
+
         private static CSharpCompilation CreateBasicCompilation(string text)
         {
             return CSharpCompilation.Create("something",
@@ -172,6 +222,13 @@ public class Thing { }
     }
 }
 
+class TypeWithMembers
+{
+    public int MyProperty { get; set; }
+
+    public void Foo(int x) { }
+    public void Foo(double y) { }
+}
 class Thing { }
 class Generic<T> { }
 
