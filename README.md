@@ -8,10 +8,12 @@ Here's an example of using these APIs with to find types in a roslyn compilation
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.AspNetCore.Mvc;
+using Roslyn.Reflection;
 
 var compilation = CSharpCompilation.Create("something",
     syntaxTrees: new[] { CSharpSyntaxTree.ParseText(@"
+using Microsoft.AspNetCore.Mvc;
+
 public class NotAPlugin
 {
 }
@@ -29,6 +31,10 @@ public class MyController : ControllerBase
 
 [Authorize]
 public class AuthController : ControllerBase  { }
+
+public class GenericThing<T> { }
+
+public class AnotherThing : GenericThing<string> { }
 
 namespace Microsoft.AspNetCore.Mvc
 {
@@ -71,6 +77,7 @@ Console.WriteLine();
 
 foreach (var t in metadataLoadContext.Assembly.GetTypes())
 {
+
     if (!t.Equals(controllerType) && controllerType.IsAssignableFrom(t))
     {
         Console.WriteLine($"- {t}");
@@ -95,4 +102,18 @@ foreach (var t in metadataLoadContext.Assembly.GetTypes())
     }
 }
 
+Console.WriteLine();
+
+// Get back the type roslyn symbol and find where it is declared in source
+ITypeSymbol controllerTypeSymbol = controllerType.GetTypeSymbol();
+
+foreach (var syntaxReference in controllerTypeSymbol.DeclaringSyntaxReferences)
+{
+    var syntax = syntaxReference.GetSyntax();
+
+    var span = syntax.SyntaxTree.GetLocation(syntax.Span);
+    var lineNumber = span.GetLineSpan().StartLinePosition.Line;
+
+    Console.WriteLine($"{controllerTypeSymbol}  was declared on line {lineNumber}");
+}
 ```

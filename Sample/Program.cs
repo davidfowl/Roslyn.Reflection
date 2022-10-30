@@ -94,3 +94,18 @@ foreach (var t in metadataLoadContext.Assembly.GetTypes())
         Console.WriteLine(@$" - {t}");
     }
 }
+
+Console.WriteLine();
+
+// Get back the type roslyn symbol and find where it is declared in source
+ITypeSymbol controllerTypeSymbol = controllerType.GetTypeSymbol();
+
+foreach (var syntaxReference in controllerTypeSymbol.DeclaringSyntaxReferences)
+{
+    var syntax = syntaxReference.GetSyntax();
+
+    var span = syntax.SyntaxTree.GetLocation(syntax.Span);
+    var lineNumber = span.GetLineSpan().StartLinePosition.Line;
+
+    Console.WriteLine($"{controllerTypeSymbol}  was declared on line {lineNumber}");
+}
