@@ -164,6 +164,44 @@ class ThisType
             AssertMembers(actualFields, expectedFields);
         }
 
+        [Fact]
+        public void GetFieldWithBindingFlagsFailsIfFlagsDontMatch()
+        {
+            var compilation = CreateBasicCompilation(ThisTypeText);
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType0 = metadataLoadContext.ResolveType("ThisType");
+
+            Assert.NotNull(thisType0);
+            var flags = BindingFlags.Public;
+            var actualField = thisType0.GetField("publicInstanceField", flags);
+            var expectedField = typeof(ThisType).GetField("publicInstanceField", flags);
+
+            Assert.Null(actualField);
+            Assert.Null(expectedField);
+        }
+
+        [Fact]
+        public void GetFieldWithBindingFlags()
+        {
+            var compilation = CreateBasicCompilation(ThisTypeText);
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType0 = metadataLoadContext.ResolveType("ThisType");
+
+            Assert.NotNull(thisType0);
+            var flags = BindingFlags.Public | BindingFlags.Instance;
+            var actualField = thisType0.GetField("publicInstanceField", flags);
+            var expectedField = typeof(ThisType).GetField("publicInstanceField", flags);
+
+            Assert.NotNull(actualField);
+            Assert.NotNull(expectedField);
+
+            Assert.Equal(expectedField!.Name, actualField!.Name);
+        }
+
         [Theory]
         [InlineData(BindingFlags.Public)]
         [InlineData(BindingFlags.NonPublic)]
@@ -192,6 +230,7 @@ class ThisType
         private void AssertMembers(IEnumerable<MemberInfo> actualMembers, IEnumerable<MemberInfo> expectedMembers)
         {
             var actualNames = actualMembers.Select(m => m.Name).OrderBy(m => m).ToArray();
+            // REVIEW: Why do we need to filter object based members?
             var expetedNames = expectedMembers.Where(m => m.DeclaringType != typeof(object)).Select(m => m.Name).OrderBy(m => m).ToArray();
 
             Assert.Equal(expetedNames, actualNames);

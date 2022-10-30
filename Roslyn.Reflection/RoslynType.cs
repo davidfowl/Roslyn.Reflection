@@ -164,7 +164,23 @@ namespace Roslyn.Reflection
 
         public override FieldInfo GetField(string name, BindingFlags bindingAttr)
         {
-            throw new NotImplementedException();
+            foreach (var symbol in _typeSymbol.GetMembers())
+            {
+                var flags = SharedUtilities.ComputeBindingFlags(symbol);
+                if (symbol is not IFieldSymbol fieldSymbol)
+                {
+                    continue;
+                }
+
+                if ((flags & bindingAttr) != flags)
+                {
+                    continue;
+                }
+
+                return fieldSymbol.AsFieldInfo(_metadataLoadContext);
+            }
+
+            return null;
         }
 
         public override FieldInfo[] GetFields(BindingFlags bindingAttr)
@@ -203,12 +219,13 @@ namespace Roslyn.Reflection
 
         public override Type[] GetInterfaces()
         {
-            var interfaces = new List<Type>();
+            List<Type> interfaces = default;
             foreach (var i in _typeSymbol.Interfaces)
             {
+                interfaces ??= new();
                 interfaces.Add(i.AsType(_metadataLoadContext));
             }
-            return interfaces.ToArray();
+            return interfaces?.ToArray() ?? Array.Empty<Type>();
         }
 
         public override MemberInfo[] GetMembers(BindingFlags bindingAttr)
@@ -288,7 +305,7 @@ namespace Roslyn.Reflection
 
         public override Type[] GetNestedTypes(BindingFlags bindingAttr)
         {
-            var nestedTypes = new List<Type>();
+            List<Type> nestedTypes = default;
             foreach (var type in _typeSymbol.GetTypeMembers())
             {
                 var flags = SharedUtilities.ComputeBindingFlags(type);
@@ -297,14 +314,15 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
+                nestedTypes ??= new();
                 nestedTypes.Add(type.AsType(_metadataLoadContext));
             }
-            return nestedTypes.ToArray();
+            return nestedTypes?.ToArray() ?? Array.Empty<Type>();
         }
 
         public override PropertyInfo[] GetProperties(BindingFlags bindingAttr)
         {
-            var properties = new List<PropertyInfo>();
+            List<PropertyInfo> properties = default;
             foreach (var symbol in _typeSymbol.GetMembers())
             {
                 if (symbol is not IPropertySymbol property)
@@ -318,9 +336,10 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
+                properties ??= new();
                 properties.Add(new RoslynPropertyInfo(property, _metadataLoadContext));
             }
-            return properties.ToArray();
+            return properties?.ToArray() ?? Array.Empty<PropertyInfo>();
         }
 
         public override object InvokeMember(string name, BindingFlags invokeAttr, Binder binder, object target, object[] args, ParameterModifier[] modifiers, CultureInfo culture, string[] namedParameters)
