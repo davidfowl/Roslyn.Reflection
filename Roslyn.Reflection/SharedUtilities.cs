@@ -10,10 +10,9 @@ namespace Roslyn.Reflection
     {
         public static BindingFlags ComputeBindingFlags(ISymbol symbol)
         {
-            // MethodAttributes methodAttributes = RuntimeMethodHandle.GetAttributes(method);
-            bool isPublic = (symbol.DeclaredAccessibility & Accessibility.Public) == Accessibility.Public;
-            bool isStatic = symbol.IsStatic;
-            bool isInherited = !SymbolEqualityComparer.Default.Equals(symbol.OriginalDefinition.ContainingType, symbol.ContainingType);
+            var isPublic = (symbol.DeclaredAccessibility & Accessibility.Public) == Accessibility.Public;
+            var isStatic = symbol.IsStatic;
+            var isInherited = !SymbolEqualityComparer.Default.Equals(symbol.OriginalDefinition.ContainingType, symbol.ContainingType);
 
             // From https://github.com/dotnet/runtime/blob/9ec7fc21862f3446c6c6f7dcfff275942e3884d3/src/coreclr/System.Private.CoreLib/src/System/RuntimeType.CoreCLR.cs#L2058
 

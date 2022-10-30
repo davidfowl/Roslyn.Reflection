@@ -176,13 +176,7 @@ namespace Roslyn.Reflection
                 var flags = SharedUtilities.ComputeBindingFlags(symbol);
                 if (symbol is IFieldSymbol fieldSymbol)
                 {
-                    // Skip if:
-                    if (// this is a backing field
-                        fieldSymbol.AssociatedSymbol != null ||
-                        // symbol represents an explicitly named tuple element
-                        fieldSymbol.IsExplicitlyNamedTupleElement ||
-                        // Flags don't match
-                        (flags & bindingAttr) != flags)
+                    if ((flags & bindingAttr) != flags)
                     {
                         continue;
                     }
@@ -219,15 +213,42 @@ namespace Roslyn.Reflection
 
         public override MemberInfo[] GetMembers(BindingFlags bindingAttr)
         {
-            throw new NotImplementedException();
+            List<MemberInfo> members = null;
+
+            foreach (var symbol in _typeSymbol.GetMembers())
+            {
+                var flags = SharedUtilities.ComputeBindingFlags(symbol);
+
+                if ((flags & bindingAttr) != flags)
+                {
+                    continue;
+                }
+
+                MemberInfo member = symbol switch
+                {
+                    IFieldSymbol f => f.AsFieldInfo(_metadataLoadContext),
+                    IPropertySymbol p => p.AsPropertyInfo(_metadataLoadContext),
+                    IMethodSymbol m => m.AsMethodInfo(_metadataLoadContext),
+                    ITypeParameterSymbol t => t.AsType(_metadataLoadContext),
+                    _ => null
+                };
+
+                if (member is null)
+                {
+                    continue;
+                }
+
+                members ??= new();
+                members.Add(member);
+            }
+
+            return members?.ToArray() ?? Array.Empty<MemberInfo>();
         }
 
         public override MethodInfo[] GetMethods(BindingFlags bindingAttr)
         {
             List<MethodInfo> methods = null;
 
-            //foreach (var t in NamedTypeSymbol.BaseTypes())
-            //{
             foreach (var m in _typeSymbol.GetMembers())
             {
                 if (m is not IMethodSymbol method || method.MethodKind == MethodKind.Constructor)
@@ -246,7 +267,7 @@ namespace Roslyn.Reflection
                 methods ??= new();
                 methods.Add(method.AsMethodInfo(_metadataLoadContext));
             }
-            //}
+
             return methods?.ToArray() ?? Array.Empty<MethodInfo>();
         }
 

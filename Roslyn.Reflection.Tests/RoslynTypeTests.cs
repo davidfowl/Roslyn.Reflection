@@ -63,7 +63,7 @@ interface IContract { }
         }
 
         [Fact]
-        public void GetMethods()
+        public void GetMethodsWorks()
         {
             var compilation = CreateBasicCompilation(@"
 class ThisType
@@ -99,21 +99,19 @@ class ThisType
         [InlineData(BindingFlags.NonPublic | BindingFlags.Static)]
         [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
         [InlineData(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)]
-        public void GetMethodsTest(BindingFlags flags)
+        public void GetMethodsWithBindingFlags(BindingFlags flags)
         {
             var compilation = CreateBasicCompilation(ThisTypeText);
             var metadataLoadContext = new MetadataLoadContext(compilation);
 
             // Resolve the type by name
             var thisType0 = metadataLoadContext.ResolveType("ThisType");
-            var thisType1 = typeof(ThisType);
 
             Assert.NotNull(thisType0);
-            var methods0 = thisType0.GetMethods(flags);
-            // TODO: Should this return types from object?
-            var methods1 = thisType1.GetMethods(flags).Where(m => m.DeclaringType != typeof(object));
+            var actualMethods = thisType0.GetMethods(flags);
+            var expectedMethods = typeof(ThisType).GetMethods(flags);
 
-            Assert.Equal(methods1.Select(m => m.Name), methods0.Select(m => m.Name));
+            AssertMembers(actualMethods, expectedMethods);
         }
 
         [Theory]
@@ -126,21 +124,19 @@ class ThisType
         [InlineData(BindingFlags.NonPublic | BindingFlags.Static)]
         [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
         [InlineData(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)]
-        public void GetPropertiesTest(BindingFlags flags)
+        public void GetPropertiesWithBindingFlags(BindingFlags flags)
         {
             var compilation = CreateBasicCompilation(ThisTypeText);
             var metadataLoadContext = new MetadataLoadContext(compilation);
 
             // Resolve the type by name
             var thisType0 = metadataLoadContext.ResolveType("ThisType");
-            var thisType1 = typeof(ThisType);
 
             Assert.NotNull(thisType0);
-            var properties0 = thisType0.GetProperties(flags);
-            // TODO: Should this return types from object?
-            var properties1 = thisType1.GetProperties(flags).Where(m => m.DeclaringType != typeof(object));
+            var actualProperties = thisType0.GetProperties(flags);
+            var expectedProperties = typeof(ThisType).GetProperties(flags);
 
-            Assert.Equal(properties0.Select(m => m.Name), properties1.Select(m => m.Name));
+            AssertMembers(actualProperties, expectedProperties);
         }
 
         [Theory]
@@ -153,21 +149,52 @@ class ThisType
         [InlineData(BindingFlags.NonPublic | BindingFlags.Static)]
         [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
         [InlineData(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)]
-        public void GetFieldsTest(BindingFlags flags)
+        public void GetFieldsWithBindingFlags(BindingFlags flags)
         {
             var compilation = CreateBasicCompilation(ThisTypeText);
             var metadataLoadContext = new MetadataLoadContext(compilation);
 
             // Resolve the type by name
             var thisType0 = metadataLoadContext.ResolveType("ThisType");
-            var thisType1 = typeof(ThisType);
 
             Assert.NotNull(thisType0);
-            var fields0 = thisType0.GetFields(flags);
-            // Skip compiler generated fields
-            var fields1 = thisType1.GetFields(flags).Where(m => m.GetCustomAttribute<CompilerGeneratedAttribute>() is null && m.DeclaringType != typeof(object));
+            var actualFields = thisType0.GetFields(flags);
+            var expectedFields = typeof(ThisType).GetFields(flags);
 
-            Assert.Equal(fields1.Select(m => m.Name), fields0.Select(m => m.Name));
+            AssertMembers(actualFields, expectedFields);
+        }
+
+        [Theory]
+        [InlineData(BindingFlags.Public)]
+        [InlineData(BindingFlags.NonPublic)]
+        [InlineData(BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)]
+        public void GetMembersWithBindingFlags(BindingFlags flags)
+        {
+            var compilation = CreateBasicCompilation(ThisTypeText);
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType0 = metadataLoadContext.ResolveType("ThisType");
+
+            Assert.NotNull(thisType0);
+            var actualMembers = thisType0.GetMembers(flags);
+            var expectedMembers = typeof(ThisType).GetMembers(flags);
+
+            AssertMembers(actualMembers, expectedMembers);
+        }
+
+        private void AssertMembers(IEnumerable<MemberInfo> actualMembers, IEnumerable<MemberInfo> expectedMembers)
+        {
+            var actualNames = actualMembers.Select(m => m.Name).OrderBy(m => m).ToArray();
+            var expetedNames = expectedMembers.Where(m => m.DeclaringType != typeof(object)).Select(m => m.Name).OrderBy(m => m).ToArray();
+
+            Assert.Equal(expetedNames, actualNames);
         }
 
         [Fact]
