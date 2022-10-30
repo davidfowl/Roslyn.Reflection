@@ -185,23 +185,27 @@ namespace Roslyn.Reflection
 
         public override FieldInfo[] GetFields(BindingFlags bindingAttr)
         {
-            List<FieldInfo> fields = new();
+            List<FieldInfo> fields = default;
 
             foreach (var symbol in _typeSymbol.GetMembers())
             {
-                var flags = SharedUtilities.ComputeBindingFlags(symbol);
-                if (symbol is IFieldSymbol fieldSymbol)
+                if (symbol is not IFieldSymbol fieldSymbol)
                 {
-                    if ((flags & bindingAttr) != flags)
-                    {
-                        continue;
-                    }
-
-                    fields.Add(new RoslynFieldInfo(fieldSymbol, _metadataLoadContext));
+                    continue;
                 }
+
+                var flags = SharedUtilities.ComputeBindingFlags(symbol);
+
+                if ((flags & bindingAttr) != flags)
+                {
+                    continue;
+                }
+
+                fields ??= new();
+                fields.Add(new RoslynFieldInfo(fieldSymbol, _metadataLoadContext));
             }
 
-            return fields.ToArray();
+            return fields?.ToArray() ?? Array.Empty<FieldInfo>();
         }
 
         public override Type GetInterface(string name, bool ignoreCase)
@@ -246,7 +250,6 @@ namespace Roslyn.Reflection
                     IFieldSymbol f => f.AsFieldInfo(_metadataLoadContext),
                     IPropertySymbol p => p.AsPropertyInfo(_metadataLoadContext),
                     IMethodSymbol m => m.AsMethodInfo(_metadataLoadContext),
-                    ITypeParameterSymbol t => t.AsType(_metadataLoadContext),
                     _ => null
                 };
 
@@ -257,6 +260,19 @@ namespace Roslyn.Reflection
 
                 members ??= new();
                 members.Add(member);
+            }
+
+            // https://github.com/dotnet/runtime/blob/9ec7fc21862f3446c6c6f7dcfff275942e3884d3/src/coreclr/System.Private.CoreLib/src/System/RuntimeType.CoreCLR.cs#L2693-L2694
+            bindingAttr &= ~BindingFlags.Static;
+            foreach (var type in GetNestedTypes(bindingAttr))
+            {
+                if (type.IsInterface)
+                {
+                    continue;
+                }
+
+                members ??= new();
+                members.Add(type);
             }
 
             return members?.ToArray() ?? Array.Empty<MemberInfo>();

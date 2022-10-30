@@ -16,7 +16,10 @@ namespace Roslyn.Reflection
 
             // From https://github.com/dotnet/runtime/blob/9ec7fc21862f3446c6c6f7dcfff275942e3884d3/src/coreclr/System.Private.CoreLib/src/System/RuntimeType.CoreCLR.cs#L2058
 
-            return ComputeBindingFlags(isPublic, isStatic, isInherited);
+            var flags = ComputeBindingFlags(isPublic, isStatic, isInherited);
+
+            // Remove the instance flag for types
+            return symbol is ITypeSymbol && !isStatic ? flags & ~BindingFlags.Instance : flags;
         }
 
         public static BindingFlags ComputeBindingFlags(MemberInfo member)

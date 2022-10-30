@@ -111,7 +111,7 @@ class ThisType
             var actualMethods = thisType0.GetMethods(flags);
             var expectedMethods = typeof(ThisType).GetMethods(flags);
 
-            AssertMembers(actualMethods, expectedMethods);
+            AssertMembers(expectedMethods, actualMethods);
         }
 
         [Theory]
@@ -136,7 +136,7 @@ class ThisType
             var actualProperties = thisType0.GetProperties(flags);
             var expectedProperties = typeof(ThisType).GetProperties(flags);
 
-            AssertMembers(actualProperties, expectedProperties);
+            AssertMembers(expectedProperties, actualProperties);
         }
 
         [Theory]
@@ -161,7 +161,7 @@ class ThisType
             var actualFields = thisType0.GetFields(flags);
             var expectedFields = typeof(ThisType).GetFields(flags);
 
-            AssertMembers(actualFields, expectedFields);
+            AssertMembers(expectedFields, actualFields);
         }
 
         [Fact]
@@ -224,10 +224,10 @@ class ThisType
             var actualMembers = thisType0.GetMembers(flags);
             var expectedMembers = typeof(ThisType).GetMembers(flags);
 
-            AssertMembers(actualMembers, expectedMembers);
+            AssertMembers(expectedMembers, actualMembers);
         }
 
-        private void AssertMembers(IEnumerable<MemberInfo> actualMembers, IEnumerable<MemberInfo> expectedMembers)
+        private void AssertMembers(IEnumerable<MemberInfo> expectedMembers, IEnumerable<MemberInfo> actualMembers)
         {
             var actualNames = actualMembers.Select(m => m.Name).OrderBy(m => m).ToArray();
             // REVIEW: Why do we need to filter object based members?
@@ -361,6 +361,9 @@ class TopLevel
             string PrivateMethod() => "Woah";
             static string StaticPrivateMethod() => "Woah";
             public static int StaticMethod() => 1;
+
+            public class PublicNested { }
+            private class PrivateNested { }
         }
 
         private const string ThisTypeText = @"
@@ -381,6 +384,9 @@ class ThisType
     string PrivateMethod() => ""Woah"";
     static string StaticPrivateMethod() => ""Woah"";
     public static int StaticMethod() => 1;
+
+    public class PublicNested { }
+    private class PrivateNested { }
 }
 ";
     }
