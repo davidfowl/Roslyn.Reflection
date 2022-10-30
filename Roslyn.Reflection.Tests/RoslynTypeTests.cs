@@ -317,6 +317,22 @@ class TopLevel
             Assert.Equal("Nested", nestedType!.Name);
         }
 
+        [Fact]
+        public void GetMethodUsingBindingFlagsAndParameterTypes()
+        {
+            var compilation = CreateBasicCompilation("");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            var intType = metadataLoadContext.ResolveType<int>();
+
+            // We're using a type from this context so test that we always resolve types in the MetadataLoadContext before comparison
+            var tryParseMethod = intType.GetMethod("TryParse", BindingFlags.Public | BindingFlags.Static, new[] { typeof(string), intType.MakeByRefType() });
+            var tryParseSpanMethod = intType.GetMethod("TryParse", BindingFlags.Public | BindingFlags.Static, new[] { typeof(ReadOnlySpan<char>), intType.MakeByRefType() });
+
+            Assert.NotNull(tryParseMethod);
+            Assert.NotNull(tryParseSpanMethod);
+        }
+
         private static CSharpCompilation CreateBasicCompilation(string text)
         {
             return CSharpCompilation.Create("something",

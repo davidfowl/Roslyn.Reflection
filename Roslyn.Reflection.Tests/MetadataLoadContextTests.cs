@@ -129,6 +129,24 @@ public class ClosedGeneric : Generic<string> { }
         }
 
         [Fact]
+        public void CanResolveClosedGeneric()
+        {
+            var compilation = CreateBasicCompilation(@"
+public class Generic<T> { }
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type
+            var genericType = metadataLoadContext.ResolveType(typeof(Generic<string>));
+            var stringType = metadataLoadContext.ResolveType<string>();
+
+            Assert.NotNull(genericType);
+            Assert.True(genericType.IsGenericType);
+            Assert.False(genericType.IsGenericTypeDefinition);
+            Assert.Equal(new[] { stringType }, genericType.GetGenericArguments());
+        }
+
+        [Fact]
         public void CanResolveArrayOfType()
         {
             var compilation = CreateBasicCompilation(@"

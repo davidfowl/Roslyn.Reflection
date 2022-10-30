@@ -41,12 +41,23 @@ namespace Roslyn.Reflection
             if (type.IsArray)
             {
                 var typeSymbol = _compilation.GetTypeByMetadataName(type.GetElementType().FullName);
-                if (typeSymbol == null)
+                if (typeSymbol is null)
                 {
                     return null;
                 }
 
                 return _compilation.CreateArrayTypeSymbol(typeSymbol).AsType(this);
+            }
+
+            if (type.IsGenericType)
+            {
+                var openGenericTypeSymbol = _compilation.GetTypeByMetadataName(type.GetGenericTypeDefinition().FullName);
+                if (openGenericTypeSymbol is null)
+                {
+                    return null;
+                }
+
+                return openGenericTypeSymbol.AsType(this).MakeGenericType(type.GetGenericArguments());
             }
 
             return null;
