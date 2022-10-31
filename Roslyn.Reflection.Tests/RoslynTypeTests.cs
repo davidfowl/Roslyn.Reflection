@@ -114,6 +114,33 @@ class ThisType
             Assert.Contains("InstanceMethod", method!.Name);
         }
 
+        [Fact]
+        public void GetCtorWorks()
+        {
+            var compilation = CreateBasicCompilation(@"
+class ThisType
+{
+    public ThisType() { }
+    private ThisType(int x, int y) { }
+}
+
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType = metadataLoadContext.ResolveType("ThisType");
+
+            Assert.NotNull(thisType);
+            var method0 = thisType.GetConstructor(BindingFlags.Public | BindingFlags.Instance, Type.EmptyTypes);
+            var method1 = thisType.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, new[] { typeof(int), typeof(int) });
+
+            Assert.NotNull(method0);
+            Assert.NotNull(method1);
+
+            Assert.Equal(0, method0.GetParameters().Length);
+            Assert.Equal(2, method1.GetParameters().Length);
+        }
+
         [Theory]
         [InlineData(BindingFlags.Public)]
         [InlineData(BindingFlags.NonPublic)]

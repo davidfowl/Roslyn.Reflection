@@ -421,7 +421,60 @@ namespace Roslyn.Reflection
 
         protected override ConstructorInfo GetConstructorImpl(BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers)
         {
-            throw new NotImplementedException();
+            // TODO: Use callConvention and modifiers
+            StringComparison comparison = (bindingAttr & BindingFlags.IgnoreCase) == BindingFlags.IgnoreCase
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
+            foreach (var m in _typeSymbol.GetMembers())
+            {
+                if (m is not IMethodSymbol method || method.MethodKind != MethodKind.Constructor)
+                {
+                    // Only methods that are constructors
+                    continue;
+                }
+
+                var flags = SharedUtilities.ComputeBindingFlags(m);
+
+                if ((flags & bindingAttr) != flags)
+                {
+                    continue;
+                }
+
+                var parameterCount = types?.Length ?? 0;
+
+                // Compare parameter types
+                if (parameterCount != method.Parameters.Length)
+                {
+                    continue;
+                }
+
+                var valid = true;
+                for (int i = 0; i < parameterCount; i++)
+                {
+                    var parameterType = types[i];
+                    var parameterTypeSymbol = _metadataLoadContext.ResolveType(parameterType)?.GetTypeSymbol();
+
+                    if (parameterTypeSymbol is null)
+                    {
+                        valid = false;
+                        break;
+                    }
+
+                    if (!method.Parameters[i].Type.Equals(parameterTypeSymbol, SymbolEqualityComparer.Default))
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if (valid)
+                {
+                    return new RoslynConstructorInfo(method, _metadataLoadContext);
+                }
+            }
+
+            return null;
         }
 
         protected override MethodInfo GetMethodImpl(string name, BindingFlags bindingAttr, Binder binder, CallingConventions callConvention, Type[] types, ParameterModifier[] modifiers)
@@ -518,8 +571,10 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
+                var parameterCount = types?.Length ?? 0;
+
                 // Compare parameter types
-                if (types.Length != property.Parameters.Length)
+                if (parameterCount  != property.Parameters.Length)
                 {
                     continue;
                 }
