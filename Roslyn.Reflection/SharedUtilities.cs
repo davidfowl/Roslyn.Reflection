@@ -8,6 +8,17 @@ namespace Roslyn.Reflection
 {
     internal class SharedUtilities
     {
+        public static IList<CustomAttributeData> GetCustomAttributesData(ISymbol symbol, MetadataLoadContext metadataLoadContext)
+        {
+            List<CustomAttributeData> attributes = default;
+            foreach (var a in symbol.GetAttributes())
+            {
+                attributes ??= new();
+                attributes.Add(new RoslynCustomAttributeData(a, metadataLoadContext));
+            }
+            return (IList<CustomAttributeData>)attributes ?? Array.Empty<CustomAttributeData>();
+        }
+
         public static BindingFlags ComputeBindingFlags(ISymbol symbol)
         {
             var isPublic = (symbol.DeclaredAccessibility & Accessibility.Public) == Accessibility.Public;

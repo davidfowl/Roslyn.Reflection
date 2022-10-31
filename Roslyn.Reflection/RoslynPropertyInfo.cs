@@ -55,12 +55,13 @@ namespace Roslyn.Reflection
 
         public override ParameterInfo[] GetIndexParameters()
         {
-            var parameters = new List<ParameterInfo>();
+            List<ParameterInfo> parameters = default;
             foreach (var p in _property.Parameters)
             {
+                parameters ??= new();
                 parameters.Add(new RoslynParameterInfo(p, _metadataLoadContext));
             }
-            return parameters.ToArray();
+            return parameters?.ToArray() ?? Array.Empty<ParameterInfo>();
         }
 
         public override MethodInfo GetSetMethod(bool nonPublic)
