@@ -366,7 +366,7 @@ namespace Roslyn.Reflection
 
         public override bool IsDefined(Type attributeType, bool inherit)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         protected override TypeAttributes GetAttributeFlagsImpl()
