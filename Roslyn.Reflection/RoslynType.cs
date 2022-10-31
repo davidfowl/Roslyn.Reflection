@@ -510,9 +510,9 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
-                var returnTypeSymbol = _metadataLoadContext.ResolveType(returnType);
+                var roslynReturnType = _metadataLoadContext.ResolveType(returnType);
 
-                if (returnTypeSymbol?.Equals(property.Type) == false)
+                if (roslynReturnType?.Equals(property.Type) == false)
                 {
                     continue;
                 }
@@ -555,7 +555,28 @@ namespace Roslyn.Reflection
 
         protected override bool IsPrimitiveImpl()
         {
-            throw new NotImplementedException();
+            // Is IsPrimitive
+            // https://github.com/dotnet/runtime/blob/55e95c80a7d7ec9d7bbbd5ad434604a1dc33e19c/src/libraries/System.Reflection.MetadataLoadContext/src/System/Reflection/TypeLoading/Types/RoType.TypeClassification.cs#L85
+
+            return _typeSymbol.SpecialType switch
+            {
+                SpecialType.System_Boolean => true,
+                SpecialType.System_Char => true,
+                SpecialType.System_SByte => true,
+                SpecialType.System_Byte => true,
+                SpecialType.System_Int16 => true,
+                SpecialType.System_UInt16 => true,
+                SpecialType.System_Int32 => true,
+                SpecialType.System_UInt32 => true,
+                SpecialType.System_Int64 => true,
+                SpecialType.System_UInt64 => true,
+                SpecialType.System_Single => true,
+                SpecialType.System_Double => true,
+                SpecialType.System_String => true,
+                SpecialType.System_IntPtr => true,
+                SpecialType.System_UIntPtr => true,
+                _ => false
+            };
         }
 
         public override string ToString()

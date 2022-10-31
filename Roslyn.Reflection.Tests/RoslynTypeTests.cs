@@ -358,6 +358,30 @@ class TopLevel
             Assert.NotNull(tryParseSpanMethod);
         }
 
+        // Is IsPrimitive
+        // https://github.com/dotnet/runtime/blob/55e95c80a7d7ec9d7bbbd5ad434604a1dc33e19c/src/libraries/System.Reflection.MetadataLoadContext/src/System/Reflection/TypeLoading/Types/RoType.TypeClassification.cs#L85
+        [Theory]
+        [InlineData(typeof(Int32), true)]
+        [InlineData(typeof(Int16), true)]
+        [InlineData(typeof(Int64), true)]
+        [InlineData(typeof(Boolean), true)]
+        [InlineData(typeof(Char), true)]
+        [InlineData(typeof(SByte), true)]
+        [InlineData(typeof(Single), true)]
+        [InlineData(typeof(Double), true)]
+        [InlineData(typeof(IntPtr), true)]
+        [InlineData(typeof(UIntPtr), true)]
+        [InlineData(typeof(Byte), true)]
+        [InlineData(typeof(DateTime), false)]
+        public void IsPrimitiveType(Type type, bool isPrimitive)
+        {
+            var compilation = CreateBasicCompilation("");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+            var typeInContext = metadataLoadContext.ResolveType(type);
+
+            Assert.Equal(isPrimitive, typeInContext.IsPrimitive);
+        }
+
         private static CSharpCompilation CreateBasicCompilation(string text)
         {
             return CSharpCompilation.Create("something",
