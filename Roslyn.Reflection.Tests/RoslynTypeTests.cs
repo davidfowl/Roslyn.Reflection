@@ -149,6 +149,31 @@ class ThisType
         [InlineData(BindingFlags.NonPublic | BindingFlags.Static)]
         [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
         [InlineData(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)]
+        public void GetCtorsWithBindingFlags(BindingFlags flags)
+        {
+            var compilation = CreateBasicCompilation(ThisTypeText);
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType0 = metadataLoadContext.ResolveType("ThisType");
+
+            Assert.NotNull(thisType0);
+            var actualMethods = thisType0.GetConstructors(flags);
+            var expectedMethods = typeof(ThisType).GetConstructors(flags);
+
+            AssertMembers(expectedMethods, actualMethods);
+        }
+
+        [Theory]
+        [InlineData(BindingFlags.Public)]
+        [InlineData(BindingFlags.NonPublic)]
+        [InlineData(BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static)]
+        [InlineData(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance)]
+        [InlineData(BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)]
         public void GetPropertiesWithBindingFlags(BindingFlags flags)
         {
             var compilation = CreateBasicCompilation(ThisTypeText);
@@ -393,6 +418,10 @@ class TopLevel
         // Keep this in sync with the tests that mirror this type
         class ThisType
         {
+            public ThisType() { }
+            public ThisType(int x) : this(x, 0) { }
+            private ThisType(int x, int y) { }
+
             private readonly int _privateInstanceField;
             public readonly int publicInstanceField;
             private static readonly int privateStaticField;
@@ -417,6 +446,10 @@ class TopLevel
         private const string ThisTypeText = @"
 class ThisType
 {
+    public ThisType() { }
+    public ThisType(int x) : this(x, 0) { }
+    private ThisType(int x, int y) { }
+
     private readonly int _privateInstanceField;
     public readonly int publicInstanceField;
     private static readonly int privateStaticField;

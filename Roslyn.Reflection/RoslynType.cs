@@ -96,7 +96,7 @@ namespace Roslyn.Reflection
                 return Array.Empty<ConstructorInfo>();
             }
 
-            var ctors = new List<ConstructorInfo>();
+            List<ConstructorInfo> ctors = default;
             foreach (var c in NamedTypeSymbol.Constructors)
             {
                 var flags = SharedUtilities.ComputeBindingFlags(c);
@@ -106,9 +106,10 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
+                ctors ??= new();
                 ctors.Add(new RoslynConstructorInfo(c, _metadataLoadContext));
             }
-            return ctors.ToArray();
+            return ctors?.ToArray() ?? Array.Empty<ConstructorInfo>();
         }
 
         public override Type MakeByRefType()
