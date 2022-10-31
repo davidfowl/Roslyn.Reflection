@@ -57,6 +57,10 @@ interface IContract { }
             Assert.NotNull(baseType);
             Assert.NotNull(interfaceType);
 
+            Assert.Equal("Base", baseType.FullName);
+            Assert.Equal("IContract", interfaceType.FullName);
+            Assert.Null(baseType.Namespace);
+            Assert.Null(interfaceType.Namespace);
             Assert.Equal(interfaceType, baseType.GetInterface("IContract"));
             Assert.Equal(interfaceType, baseType.GetInterface("icontract", ignoreCase: true));
             Assert.Null(baseType.GetInterface("icontract", ignoreCase: false));

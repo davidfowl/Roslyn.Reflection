@@ -27,13 +27,13 @@ namespace Roslyn.Reflection
 
         public override Type BaseType => _typeSymbol.BaseType.AsType(_metadataLoadContext);
 
-        public override string FullName => Namespace == null || Namespace == "<global namespace>" ? Name : Namespace + "." + Name;
+        public override string FullName => Namespace is null ? Name : Namespace + "." + Name;
 
         public override Guid GUID => Guid.Empty;
 
         public override Module Module => throw new NotImplementedException();
 
-        public override string Namespace => _typeSymbol.ContainingNamespace?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining));
+        public override string Namespace => _typeSymbol.ContainingNamespace?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted)) is { Length: > 0 } ns ? ns : null;
 
         public override Type UnderlyingSystemType => this;
 
