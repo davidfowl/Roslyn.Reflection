@@ -212,6 +212,32 @@ class TypeWithMembers
             Assert.NotNull(propertyInContext.GetPropertySymbol());
         }
 
+        [Fact]
+        public void CanResolveFieldInfo()
+        {
+            var compilation = CreateBasicCompilation(@"
+class TypeWithMembers
+{
+    public int MyField;
+    public int MyProperty { get; set; }
+
+    public void Foo(int x) { }
+    public void Foo(double y) { }
+}
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type
+            var fieldInfo = typeof(TypeWithMembers).GetField("MyField", BindingFlags.Public | BindingFlags.Instance);
+
+            Assert.NotNull(fieldInfo);
+
+            var fieldInContext = metadataLoadContext.ResolveMember(fieldInfo);
+
+            Assert.NotNull(fieldInContext);
+            Assert.NotNull(fieldInContext.GetFieldSymbol());
+        }
+
         private static CSharpCompilation CreateBasicCompilation(string text)
         {
             return CSharpCompilation.Create("something",
@@ -224,6 +250,7 @@ class TypeWithMembers
 
 class TypeWithMembers
 {
+    public int MyField;
     public int MyProperty { get; set; }
 
     public void Foo(int x) { }
