@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
-using System.Text;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Reflection
@@ -57,7 +56,7 @@ namespace Roslyn.Reflection
             }
         }
 
-        public override RuntimeFieldHandle FieldHandle => throw new NotImplementedException();
+        public override RuntimeFieldHandle FieldHandle => throw new NotSupportedException();
 
         public override Type FieldType => _field.Type.AsType(_metadataLoadContext);
 
@@ -69,12 +68,12 @@ namespace Roslyn.Reflection
 
         public override object[] GetCustomAttributes(bool inherit)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override object[] GetCustomAttributes(Type attributeType, bool inherit)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public override object GetValue(object obj)

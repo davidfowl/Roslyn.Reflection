@@ -107,5 +107,5 @@ foreach (var syntaxReference in controllerTypeSymbol.DeclaringSyntaxReferences)
     var span = syntax.SyntaxTree.GetLocation(syntax.Span);
     var lineNumber = span.GetLineSpan().StartLinePosition.Line;
 
-    Console.WriteLine($"{controllerTypeSymbol}  was declared on line {lineNumber}");
+    Console.WriteLine($"{controllerTypeSymbol} was declared on line {lineNumber}");
 }
