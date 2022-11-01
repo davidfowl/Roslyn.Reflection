@@ -280,7 +280,6 @@ namespace Roslyn.Reflection
                 {
                     if (m is not IMethodSymbol method || method.MethodKind == MethodKind.Constructor)
                     {
-                        // Only methods that are not constructors
                         continue;
                     }
 

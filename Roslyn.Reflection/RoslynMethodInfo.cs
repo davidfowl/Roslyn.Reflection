@@ -44,6 +44,11 @@ namespace Roslyn.Reflection
                     Attributes |= MethodAttributes.Assembly;
                     break;
             }
+
+            if (method.MethodKind != MethodKind.Ordinary)
+            {
+                Attributes |= MethodAttributes.SpecialName;
+            }
         }
 
         public override ICustomAttributeProvider ReturnTypeCustomAttributes => throw new NotImplementedException();
