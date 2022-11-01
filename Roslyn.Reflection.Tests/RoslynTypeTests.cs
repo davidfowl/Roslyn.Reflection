@@ -141,8 +141,8 @@ class ThisType
             Assert.NotNull(method0);
             Assert.NotNull(method1);
 
-            Assert.Equal(0, method0.GetParameters().Length);
-            Assert.Equal(2, method1.GetParameters().Length);
+            Assert.Empty(method0!.GetParameters());
+            Assert.Equal(2, method1!.GetParameters().Length);
         }
 
         [Theory]
