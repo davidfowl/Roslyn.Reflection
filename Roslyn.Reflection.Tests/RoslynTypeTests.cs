@@ -70,7 +70,7 @@ interface IContract { }
         public void GetMethodsWorks()
         {
             var compilation = CreateBasicCompilation(@"
-class ThisType
+class TypeWithMethods
 {
     public void InstanceMethod() { }
     string PrivateMethod() => ""Woah"";
@@ -81,16 +81,13 @@ class ThisType
             var metadataLoadContext = new MetadataLoadContext(compilation);
 
             // Resolve the type by name
-            var thisType = metadataLoadContext.ResolveType("ThisType");
+            var thisType = metadataLoadContext.ResolveType("TypeWithMethods");
 
             Assert.NotNull(thisType);
-            var methods = thisType.GetMethods();
+            var actualMethods = thisType.GetMethods();
+            var expectedMethods = typeof(TypeWithMethods).GetMethods();
 
-            // Private methods don't show up by default
-            Assert.Equal(2, methods.Length);
-
-            Assert.Contains(methods, m => m.Name == "InstanceMethod");
-            Assert.Contains(methods, m => m.Name == "StaticMethod");
+            AssertMembers(expectedMethods, actualMethods);
         }
 
         [Fact]
@@ -308,11 +305,50 @@ class ThisType
             AssertMembers(expectedMembers, actualMembers);
         }
 
+        [Theory]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)]
+        public void GetInheritedPropertiesWithBindingFlags(BindingFlags flags)
+        {
+            var compilation = CreateBasicCompilation(ThisTypeText);
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType0 = metadataLoadContext.ResolveType("DerivedType");
+
+            Assert.NotNull(thisType0);
+            var actualProperties = thisType0.GetProperties(flags);
+            var expectedProperties = typeof(DerivedType).GetProperties(flags);
+
+            AssertMembers(expectedProperties, actualProperties);
+        }
+
+        [Theory]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance)]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)]
+        [InlineData(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)]
+        public void GetInheritedMethodsWithBindingFlags(BindingFlags flags)
+        {
+            var compilation = CreateBasicCompilation(ThisTypeText);
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var thisType0 = metadataLoadContext.ResolveType("DerivedType");
+
+            Assert.NotNull(thisType0);
+            var actualMethods = thisType0.GetMethods(flags);
+            var expectedMethods = typeof(DerivedType).GetMethods(flags);
+
+            AssertMembers(expectedMethods, actualMethods);
+        }
+
         private static void AssertMembers(IEnumerable<MemberInfo> expectedMembers, IEnumerable<MemberInfo> actualMembers)
         {
-            var actualNames = actualMembers.Select(m => m.Name).OrderBy(m => m).ToArray();
-            // REVIEW: Why do we need to filter object based members?
-            var expetedNames = expectedMembers.Where(m => m.DeclaringType != typeof(object)).Select(m => m.Name).OrderBy(m => m).ToArray();
+            bool Include(MemberInfo member) => !member.DeclaringType.Equals(typeof(object));
+
+            var actualNames = actualMembers.Where(Include).Select(m => m.Name).OrderBy(m => m).ToArray();
+            var expetedNames = expectedMembers.Where(Include).Select(m => m.Name).OrderBy(m => m).ToArray();
 
             Assert.Equal(expetedNames, actualNames);
         }
@@ -333,7 +369,7 @@ class TypeWithPointers
             var typeWithPointers = metadataLoadContext.ResolveType("TypeWithPointers");
 
             Assert.NotNull(typeWithPointers);
-            var methods = typeWithPointers.GetMethods();
+            var methods = typeWithPointers.GetMethods(BindingFlags.DeclaredOnly | BindingFlags.Public | BindingFlags.Instance);
             var method = Assert.Single(methods);
 
             Assert.Equal("Parse", method.Name);
@@ -474,6 +510,23 @@ class TopLevel
             private class PrivateNested { }
         }
 
+        class TypeWithMethods
+        {
+            public void InstanceMethod() { }
+            string PrivateMethod() => "Woah";
+            public static int StaticMethod() => 1;
+        }
+        class DerivedType : BaseType
+        {
+
+        }
+
+        class BaseType
+        {
+            public virtual int X { get; }
+            public virtual int GetX() => X;
+        }
+
         private const string ThisTypeText = @"
 class ThisType
 {
@@ -499,6 +552,17 @@ class ThisType
 
     public class PublicNested { }
     private class PrivateNested { }
+}
+
+class DerivedType : BaseType
+{
+    
+}
+
+class BaseType
+{
+    public virtual int X { get; }
+    public virtual int GetX() => X;
 }
 ";
     }

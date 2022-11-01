@@ -134,9 +134,6 @@ namespace Roslyn.Reflection
             throw new NotSupportedException();
         }
 
-        public override string ToString()
-        {
-            return _method.ToString();
-        }
+        public override string ToString() => _method.ToString();
     }
 }

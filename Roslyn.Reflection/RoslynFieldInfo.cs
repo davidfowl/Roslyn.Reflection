@@ -95,5 +95,7 @@ namespace Roslyn.Reflection
         {
             throw new NotSupportedException();
         }
+
+        public override string ToString() => _field.ToString();
     }
 }

@@ -94,9 +94,7 @@ namespace Roslyn.Reflection
             List<ConstructorInfo> ctors = default;
             foreach (var c in NamedTypeSymbol.Constructors)
             {
-                var flags = SharedUtilities.ComputeBindingFlags(c);
-
-                if ((flags & bindingAttr) != flags)
+                if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, c))
                 {
                     continue;
                 }
@@ -162,13 +160,12 @@ namespace Roslyn.Reflection
         {
             foreach (var symbol in _typeSymbol.GetMembers())
             {
-                var flags = SharedUtilities.ComputeBindingFlags(symbol);
                 if (symbol is not IFieldSymbol fieldSymbol)
                 {
                     continue;
                 }
 
-                if ((flags & bindingAttr) != flags)
+                if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, symbol))
                 {
                     continue;
                 }
@@ -190,9 +187,7 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
-                var flags = SharedUtilities.ComputeBindingFlags(symbol);
-
-                if ((flags & bindingAttr) != flags)
+                if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, symbol))
                 {
                     continue;
                 }
@@ -232,30 +227,31 @@ namespace Roslyn.Reflection
         {
             List<MemberInfo> members = null;
 
-            foreach (var symbol in _typeSymbol.GetMembers())
+            foreach (var t in _typeSymbol.BaseTypes())
             {
-                var flags = SharedUtilities.ComputeBindingFlags(symbol);
-
-                if ((flags & bindingAttr) != flags)
+                foreach (var symbol in t.GetMembers())
                 {
-                    continue;
+                    if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, symbol))
+                    {
+                        continue;
+                    }
+
+                    MemberInfo member = symbol switch
+                    {
+                        IFieldSymbol f => f.AsFieldInfo(_metadataLoadContext),
+                        IPropertySymbol p => p.AsPropertyInfo(_metadataLoadContext),
+                        IMethodSymbol m => m.AsMethodInfo(_metadataLoadContext),
+                        _ => null
+                    };
+
+                    if (member is null)
+                    {
+                        continue;
+                    }
+
+                    members ??= new();
+                    members.Add(member);
                 }
-
-                MemberInfo member = symbol switch
-                {
-                    IFieldSymbol f => f.AsFieldInfo(_metadataLoadContext),
-                    IPropertySymbol p => p.AsPropertyInfo(_metadataLoadContext),
-                    IMethodSymbol m => m.AsMethodInfo(_metadataLoadContext),
-                    _ => null
-                };
-
-                if (member is null)
-                {
-                    continue;
-                }
-
-                members ??= new();
-                members.Add(member);
             }
 
             // https://github.com/dotnet/runtime/blob/9ec7fc21862f3446c6c6f7dcfff275942e3884d3/src/coreclr/System.Private.CoreLib/src/System/RuntimeType.CoreCLR.cs#L2693-L2694
@@ -278,23 +274,24 @@ namespace Roslyn.Reflection
         {
             List<MethodInfo> methods = null;
 
-            foreach (var m in _typeSymbol.GetMembers())
+            foreach (var t in _typeSymbol.BaseTypes())
             {
-                if (m is not IMethodSymbol method || method.MethodKind == MethodKind.Constructor)
+                foreach (var m in t.GetMembers())
                 {
-                    // Only methods that are not constructors
-                    continue;
+                    if (m is not IMethodSymbol method || method.MethodKind == MethodKind.Constructor)
+                    {
+                        // Only methods that are not constructors
+                        continue;
+                    }
+
+                    if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, method))
+                    {
+                        continue;
+                    }
+
+                    methods ??= new();
+                    methods.Add(method.AsMethodInfo(_metadataLoadContext));
                 }
-
-                var flags = SharedUtilities.ComputeBindingFlags(m);
-
-                if ((flags & bindingAttr) != flags)
-                {
-                    continue;
-                }
-
-                methods ??= new();
-                methods.Add(method.AsMethodInfo(_metadataLoadContext));
             }
 
             return methods?.ToArray() ?? Array.Empty<MethodInfo>();
@@ -304,8 +301,7 @@ namespace Roslyn.Reflection
         {
             foreach (var type in _typeSymbol.GetTypeMembers(name))
             {
-                var flags = SharedUtilities.ComputeBindingFlags(type);
-                if ((flags & bindingAttr) != flags)
+                if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, type))
                 {
                     continue;
                 }
@@ -320,8 +316,7 @@ namespace Roslyn.Reflection
             List<Type> nestedTypes = default;
             foreach (var type in _typeSymbol.GetTypeMembers())
             {
-                var flags = SharedUtilities.ComputeBindingFlags(type);
-                if ((flags & bindingAttr) != flags)
+                if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, type))
                 {
                     continue;
                 }
@@ -335,21 +330,23 @@ namespace Roslyn.Reflection
         public override PropertyInfo[] GetProperties(BindingFlags bindingAttr)
         {
             List<PropertyInfo> properties = default;
-            foreach (var symbol in _typeSymbol.GetMembers())
+            foreach (var t in _typeSymbol.BaseTypes())
             {
-                if (symbol is not IPropertySymbol property)
+                foreach (var symbol in t.GetMembers())
                 {
-                    continue;
-                }
+                    if (symbol is not IPropertySymbol property)
+                    {
+                        continue;
+                    }
 
-                var flags = SharedUtilities.ComputeBindingFlags(symbol);
-                if ((flags & bindingAttr) != flags)
-                {
-                    continue;
-                }
+                    if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, symbol))
+                    {
+                        continue;
+                    }
 
-                properties ??= new();
-                properties.Add(new RoslynPropertyInfo(property, _metadataLoadContext));
+                    properties ??= new();
+                    properties.Add(new RoslynPropertyInfo(property, _metadataLoadContext));
+                }
             }
             return properties?.ToArray() ?? Array.Empty<PropertyInfo>();
         }
@@ -429,9 +426,7 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
-                var flags = SharedUtilities.ComputeBindingFlags(m);
-
-                if ((flags & bindingAttr) != flags)
+                if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, m))
                 {
                     continue;
                 }
@@ -487,9 +482,7 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
-                var flags = SharedUtilities.ComputeBindingFlags(m);
-
-                if ((flags & bindingAttr) != flags)
+                if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, m))
                 {
                     continue;
                 }
@@ -548,8 +541,7 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
-                var flags = SharedUtilities.ComputeBindingFlags(symbol);
-                if ((flags & bindingAttr) != flags)
+                if (!SharedUtilities.MatchBindingFlags(bindingAttr, _typeSymbol, symbol))
                 {
                     continue;
                 }
@@ -569,7 +561,7 @@ namespace Roslyn.Reflection
                 var parameterCount = types?.Length ?? 0;
 
                 // Compare parameter types
-                if (parameterCount  != property.Parameters.Length)
+                if (parameterCount != property.Parameters.Length)
                 {
                     continue;
                 }

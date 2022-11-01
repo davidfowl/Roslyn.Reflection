@@ -30,5 +30,7 @@ namespace Roslyn.Reflection
         {
             return SharedUtilities.GetCustomAttributesData(_parameter, _metadataLoadContext);
         }
+
+        public override string ToString() => _parameter.ToString();
     }
 }

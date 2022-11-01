@@ -19,18 +19,104 @@ namespace Roslyn.Reflection
             return (IList<CustomAttributeData>)attributes ?? Array.Empty<CustomAttributeData>();
         }
 
-        public static BindingFlags ComputeBindingFlags(ISymbol symbol)
+        public static bool MatchBindingFlags(BindingFlags bindingFlags, ITypeSymbol thisType, ISymbol symbol)
         {
             var isPublic = (symbol.DeclaredAccessibility & Accessibility.Public) == Accessibility.Public;
+            var isNonProtectedInternal = (symbol.DeclaredAccessibility & Accessibility.ProtectedOrInternal) == 0;
             var isStatic = symbol.IsStatic;
-            var isInherited = !SymbolEqualityComparer.Default.Equals(symbol.OriginalDefinition.ContainingType, symbol.ContainingType);
+            var isInherited = !SymbolEqualityComparer.Default.Equals(thisType, symbol.ContainingType);
 
+            // TODO: REVIEW precomputing binding flags
             // From https://github.com/dotnet/runtime/blob/9ec7fc21862f3446c6c6f7dcfff275942e3884d3/src/coreclr/System.Private.CoreLib/src/System/RuntimeType.CoreCLR.cs#L2058
 
-            var flags = ComputeBindingFlags(isPublic, isStatic, isInherited);
+            //var symbolBindingFlags = ComputeBindingFlags(isPublic, isStatic, isInherited);
 
-            // Remove the instance flag for types
-            return symbol is ITypeSymbol && !isStatic ? flags & ~BindingFlags.Instance : flags;
+            //if (symbol is ITypeSymbol && !isStatic)
+            //{
+            //    symbolBindingFlags &= ~BindingFlags.Instance;
+            //}
+
+            // The below logic is a mishmash of copied logic from the following
+
+            // https://github.com/dotnet/runtime/blob/9ec7fc21862f3446c6c6f7dcfff275942e3884d3/src/coreclr/System.Private.CoreLib/src/System/RuntimeType.CoreCLR.cs#L2261
+
+            // filterFlags ^= BindingFlags.DeclaredOnly;
+
+            // https://github.com/dotnet/runtime/blob/9ec7fc21862f3446c6c6f7dcfff275942e3884d3/src/coreclr/System.Private.CoreLib/src/System/RuntimeType.CoreCLR.cs#L2153
+
+            //if ((filterFlags & symbolBindingFlags) != symbolBindingFlags)
+            //{
+            //    return false;
+            //}
+
+            // Filter by Public & Private
+            if (isPublic)
+            {
+                if ((bindingFlags & BindingFlags.Public) == 0)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if ((bindingFlags & BindingFlags.NonPublic) == 0)
+                {
+                    return false;
+                }
+            }
+
+            // Filter by DeclaredOnly
+            if ((bindingFlags & BindingFlags.DeclaredOnly) != 0 && isInherited)
+            {
+                return false;
+            }
+
+            if (symbol is not ITypeSymbol)
+            {
+                if (isStatic)
+                {
+                    if ((bindingFlags & BindingFlags.FlattenHierarchy) == 0 && isInherited)
+                    {
+                        return false;
+                    }
+
+                    if ((bindingFlags & BindingFlags.Static) == 0)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    if ((bindingFlags & BindingFlags.Instance) == 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            // @Asymmetry - Internal, inherited, instance, non -protected, non-virtual, non-abstract members returned
+            //              iff BindingFlags !DeclaredOnly, Instance and Public are present except for fields
+            if (((bindingFlags & BindingFlags.DeclaredOnly) == 0) &&        // DeclaredOnly not present
+                 isInherited &&                                            // Is inherited Member
+
+                isNonProtectedInternal &&                                 // Is non-protected internal member
+                ((bindingFlags & BindingFlags.NonPublic) != 0) &&           // BindingFlag.NonPublic present
+
+                (!isStatic) &&                                              // Is instance member
+                ((bindingFlags & BindingFlags.Instance) != 0))              // BindingFlag.Instance present
+            {
+                if (symbol is not IMethodSymbol method)
+                {
+                    return false;
+                }
+
+                if (!method.IsVirtual && !method.IsAbstract)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static BindingFlags ComputeBindingFlags(MemberInfo member)
