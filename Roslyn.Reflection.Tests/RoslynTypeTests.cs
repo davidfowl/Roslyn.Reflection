@@ -96,7 +96,7 @@ class TypeWithMethods
             var compilation = CreateBasicCompilation(@"
 class ThisType
 {
-    public void InstanceMethod() { }
+    public void InstanceMethod(int x) { }
     string PrivateMethod() => ""Woah"";
     public static int StaticMethod() => 1;
 }

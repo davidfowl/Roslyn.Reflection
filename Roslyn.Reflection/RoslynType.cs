@@ -430,30 +430,34 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
-                var parameterCount = types?.Length ?? 0;
-
-                // Compare parameter types
-                if (parameterCount != method.Parameters.Length)
-                {
-                    continue;
-                }
-
                 var valid = true;
-                for (int i = 0; i < parameterCount; i++)
-                {
-                    var parameterType = types[i];
-                    var parameterTypeSymbol = _metadataLoadContext.ResolveType(parameterType)?.GetTypeSymbol();
 
-                    if (parameterTypeSymbol is null)
+                if (types is { Length: > 0 })
+                {
+                    var parameterCount = types.Length;
+
+                    // Compare parameter types
+                    if (parameterCount != method.Parameters.Length)
                     {
-                        valid = false;
-                        break;
+                        continue;
                     }
 
-                    if (!method.Parameters[i].Type.Equals(parameterTypeSymbol, SymbolEqualityComparer.Default))
+                    for (int i = 0; i < parameterCount; i++)
                     {
-                        valid = false;
-                        break;
+                        var parameterType = types[i];
+                        var parameterTypeSymbol = _metadataLoadContext.ResolveType(parameterType)?.GetTypeSymbol();
+
+                        if (parameterTypeSymbol is null)
+                        {
+                            valid = false;
+                            break;
+                        }
+
+                        if (!method.Parameters[i].Type.Equals(parameterTypeSymbol, SymbolEqualityComparer.Default))
+                        {
+                            valid = false;
+                            break;
+                        }
                     }
                 }
 
@@ -491,30 +495,34 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
-                var parameterCount = types?.Length ?? 0;
-
-                // Compare parameter types
-                if (parameterCount != method.Parameters.Length)
-                {
-                    continue;
-                }
-
                 var valid = true;
-                for (int i = 0; i < parameterCount; i++)
-                {
-                    var parameterType = types[i];
-                    var parameterTypeSymbol = _metadataLoadContext.ResolveType(parameterType)?.GetTypeSymbol();
 
-                    if (parameterTypeSymbol is null)
+                if (types is { Length: > 0 })
+                {
+                    var parameterCount = types.Length;
+
+                    // Compare parameter types
+                    if (parameterCount != method.Parameters.Length)
                     {
-                        valid = false;
-                        break;
+                        continue;
                     }
 
-                    if (!method.Parameters[i].Type.Equals(parameterTypeSymbol, SymbolEqualityComparer.Default))
+                    for (int i = 0; i < parameterCount; i++)
                     {
-                        valid = false;
-                        break;
+                        var parameterType = types[i];
+                        var parameterTypeSymbol = _metadataLoadContext.ResolveType(parameterType)?.GetTypeSymbol();
+
+                        if (parameterTypeSymbol is null)
+                        {
+                            valid = false;
+                            break;
+                        }
+
+                        if (!method.Parameters[i].Type.Equals(parameterTypeSymbol, SymbolEqualityComparer.Default))
+                        {
+                            valid = false;
+                            break;
+                        }
                     }
                 }
 
@@ -557,14 +565,16 @@ namespace Roslyn.Reflection
                     continue;
                 }
 
-                var parameterCount = types?.Length ?? 0;
-
-                // Compare parameter types
-                if (parameterCount != property.Parameters.Length)
+                if (types is { Length: > 0 })
                 {
-                    continue;
-                }
+                    var parameterCount = types.Length;
 
+                    // Compare parameter types
+                    if (parameterCount != property.Parameters.Length)
+                    {
+                        continue;
+                    }
+                }
                 // TODO: Use parameters
 
                 return property.AsPropertyInfo(_metadataLoadContext);
