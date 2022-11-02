@@ -24,6 +24,9 @@ namespace Roslyn.Reflection
                 {
                     IPropertySymbol property => property.AsPropertyInfo(metadataLoadContext),
                     IFieldSymbol field => field.AsFieldInfo(metadataLoadContext),
+                    IMethodSymbol ctor when ctor.MethodKind == MethodKind.Constructor => new RoslynConstructorInfo(ctor, metadataLoadContext),
+                    IMethodSymbol method => method.AsMethodInfo(metadataLoadContext),
+                    ITypeSymbol typeSymbol => typeSymbol.AsType(metadataLoadContext),
                     _ => new RoslynMemberInfo(member, metadataLoadContext)
                 };
                 namedArguments.Add(new CustomAttributeNamedArgument(memberInfo, na.Value.Value));
