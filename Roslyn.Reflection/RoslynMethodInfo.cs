@@ -92,6 +92,16 @@ namespace Roslyn.Reflection
             return method.AsMethodInfo(_metadataLoadContext);
         }
 
+        public override MethodInfo MakeGenericMethod(params Type[] typeArguments)
+        {
+            var typeSymbols = new ITypeSymbol[typeArguments.Length];
+            for (int i = 0; i < typeSymbols.Length; i++)
+            {
+                typeSymbols[i] = _metadataLoadContext.ResolveType(typeArguments[i]).GetTypeSymbol();
+            }
+            return _method.Construct(typeSymbols).AsMethodInfo(_metadataLoadContext);
+        }
+
         public override object[] GetCustomAttributes(bool inherit)
         {
             throw new NotSupportedException();

@@ -38,6 +38,36 @@ public class DerivedType : BaseType
             Assert.Equal(derivedType!.BaseType, method!.GetBaseDefinition().DeclaringType);
         }
 
+
+        [Fact]
+        public void MakeGenericMethodWorks()
+        {
+            var compilaton = CreateBasicCompilation(@"
+public class TypeWithGenericMethod
+{
+    public T Identity<T>(T value) => value;
+}
+");
+
+            var metadataLoadContext = new MetadataLoadContext(compilaton);
+
+            var typeWithGenericMethod = metadataLoadContext.ResolveType("TypeWithGenericMethod");
+
+            Assert.NotNull(typeWithGenericMethod);
+
+            var method = typeWithGenericMethod.GetMethod("Identity");
+
+            Assert.NotNull(method);
+            Assert.True(method!.IsGenericMethod);
+            Assert.False(method!.IsGenericMethodDefinition);
+
+            var closedGeneric = method!.MakeGenericMethod(typeof(string));
+            Assert.NotNull(closedGeneric);
+
+            Assert.Equal("Identity", closedGeneric.Name);
+            Assert.Equal(new[] { metadataLoadContext.ResolveType(typeof(string)) }, closedGeneric.GetGenericArguments());
+        }
+
         private static CSharpCompilation CreateBasicCompilation(string text)
         {
             return CSharpCompilation.Create("something",
