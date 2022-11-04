@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     internal class RoslynType : Type
@@ -686,3 +687,4 @@ namespace Roslyn.Reflection
         }
     }
 }
+#nullable restore

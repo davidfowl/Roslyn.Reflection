@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     public class RoslynParameterInfo : ParameterInfo
@@ -34,3 +35,4 @@ namespace Roslyn.Reflection
         public override string ToString() => _parameter.ToString();
     }
 }
+#nullable restore

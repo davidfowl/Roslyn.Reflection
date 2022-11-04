@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     internal class SharedUtilities
@@ -172,3 +173,4 @@ namespace Roslyn.Reflection
         }
     }
 }
+#nullable restore

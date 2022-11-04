@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     internal class RoslynFieldInfo : FieldInfo
@@ -99,3 +100,4 @@ namespace Roslyn.Reflection
         public override string ToString() => _field.ToString();
     }
 }
+#nullable restore

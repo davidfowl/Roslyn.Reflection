@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     public class MetadataLoadContext
@@ -79,3 +80,4 @@ namespace Roslyn.Reflection
         }
     }
 }
+#nullable restore

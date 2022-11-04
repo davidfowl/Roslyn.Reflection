@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     internal class RoslynCustomAttributeData : CustomAttributeData
@@ -55,3 +56,4 @@ namespace Roslyn.Reflection
         public override IList<CustomAttributeTypedArgument> ConstructorArguments { get; }
     }
 }
+#nullable restore

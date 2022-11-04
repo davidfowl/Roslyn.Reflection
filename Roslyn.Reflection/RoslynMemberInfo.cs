@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     internal class RoslynMemberInfo : MemberInfo
@@ -45,3 +46,4 @@ namespace Roslyn.Reflection
         }
     }
 }
+#nullable restore
