@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     internal class RoslynMethodInfo : MethodInfo
@@ -152,3 +153,4 @@ namespace Roslyn.Reflection
         public override string ToString() => _method.ToString();
     }
 }
+#nullable restore

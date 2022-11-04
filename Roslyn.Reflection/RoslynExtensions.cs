@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     public static class RoslynExtensions
@@ -39,3 +40,4 @@ namespace Roslyn.Reflection
         }
     }
 }
+#nullable restore

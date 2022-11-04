@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#nullable disable
 namespace Roslyn.Reflection
 {
     internal class RoslynPropertyInfo : PropertyInfo
@@ -85,3 +86,4 @@ namespace Roslyn.Reflection
         }
     }
 }
+#nullable restore
