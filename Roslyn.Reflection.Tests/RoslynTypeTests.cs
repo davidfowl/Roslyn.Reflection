@@ -112,7 +112,7 @@ class ThisType
 
             Assert.NotNull(method);
 
-            Assert.Contains("InstanceMethod", method!.Name);
+            Assert.Contains("InstanceMethod", method.Name);
         }
 
         [Fact]
@@ -138,8 +138,8 @@ class ThisType
             Assert.NotNull(method0);
             Assert.NotNull(method1);
 
-            Assert.Empty(method0!.GetParameters());
-            Assert.Equal(2, method1!.GetParameters().Length);
+            Assert.Empty(method0.GetParameters());
+            Assert.Equal(2, method1.GetParameters().Length);
         }
 
         [Theory]
@@ -277,7 +277,7 @@ class ThisType
             Assert.NotNull(actualField);
             Assert.NotNull(expectedField);
 
-            Assert.Equal(expectedField!.Name, actualField!.Name);
+            Assert.Equal(expectedField.Name, actualField.Name);
         }
 
         [Theory]
@@ -345,7 +345,7 @@ class ThisType
 
         private static void AssertMembers(IEnumerable<MemberInfo> expectedMembers, IEnumerable<MemberInfo> actualMembers)
         {
-            bool Include(MemberInfo member) => !member.DeclaringType.Equals(typeof(object));
+            bool Include(MemberInfo member) => member.DeclaringType?.Equals(typeof(object)) == false;
 
             var actualNames = actualMembers.Where(Include).Select(m => m.Name).OrderBy(m => m).ToArray();
             var expetedNames = expectedMembers.Where(Include).Select(m => m.Name).OrderBy(m => m).ToArray();
@@ -430,8 +430,8 @@ class TopLevel
             Assert.NotNull(nestedType);
             Assert.NotNull(privateNestedType);
 
-            Assert.True(nestedType!.IsNested);
-            Assert.Equal("Nested", nestedType!.Name);
+            Assert.True(nestedType.IsNested);
+            Assert.Equal("Nested", nestedType.Name);
         }
 
         [Fact]
@@ -482,6 +482,8 @@ class TopLevel
                 });
         }
 
+#pragma warning disable CS0649
+#pragma warning disable CS0169
         // Keep this in sync with the tests that mirror this type
         class ThisType
         {
@@ -493,7 +495,6 @@ class TopLevel
             public readonly int publicInstanceField;
             private static readonly int privateStaticField;
             public static readonly int publicStaticField;
-
 
             public int InstanceProperty { get; set; }
             public static object? StaticProperty { get; set; }
@@ -509,6 +510,8 @@ class TopLevel
             public class PublicNested { }
             private class PrivateNested { }
         }
+#pragma warning restore CS0649 
+#pragma warning restore CS0169
 
         class TypeWithMethods
         {

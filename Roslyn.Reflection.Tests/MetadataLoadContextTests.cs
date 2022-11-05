@@ -248,6 +248,7 @@ class TypeWithMembers
     }
 }
 
+#pragma warning disable CS0649
 class TypeWithMembers
 {
     public int MyField;
@@ -256,6 +257,8 @@ class TypeWithMembers
     public void Foo(int x) { }
     public void Foo(double y) { }
 }
+#pragma warning restore CS0649
+
 class Thing { }
 class Generic<T> { }
 

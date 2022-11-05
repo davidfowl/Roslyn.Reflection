@@ -35,7 +35,7 @@ public class DerivedType : BaseType
             Assert.NotNull(method);
             Assert.NotNull(derivedType.BaseType);
 
-            Assert.Equal(derivedType!.BaseType, method!.GetBaseDefinition().DeclaringType);
+            Assert.Equal(derivedType.BaseType, method.GetBaseDefinition().DeclaringType);
         }
 
 
@@ -58,10 +58,10 @@ public class TypeWithGenericMethod
             var method = typeWithGenericMethod.GetMethod("Identity");
 
             Assert.NotNull(method);
-            Assert.True(method!.IsGenericMethod);
-            Assert.False(method!.IsGenericMethodDefinition);
+            Assert.True(method.IsGenericMethod);
+            Assert.False(method.IsGenericMethodDefinition);
 
-            var closedGeneric = method!.MakeGenericMethod(typeof(string));
+            var closedGeneric = method.MakeGenericMethod(typeof(string));
             Assert.NotNull(closedGeneric);
 
             Assert.Equal("Identity", closedGeneric.Name);
