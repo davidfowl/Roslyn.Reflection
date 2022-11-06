@@ -474,6 +474,23 @@ class TopLevel
             Assert.Equal(isPrimitive, typeInContext.IsPrimitive);
         }
 
+        [Fact]
+        public void TypeEqualityTest()
+        {
+            var compilation = CreateBasicCompilation("");
+            var stringSymbol = compilation.GetSpecialType(SpecialType.System_String);
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+            var stringInContext = metadataLoadContext.ResolveType(typeof(string));
+
+            Assert.False(typeof(string).Equals(stringInContext));
+            Assert.False(typeof(string) == stringInContext);
+            Assert.False(stringInContext == typeof(string));
+            Assert.Same(stringSymbol, stringInContext.GetTypeSymbol());
+
+            Assert.True(stringInContext.Equals(typeof(string)));
+            Assert.True(stringInContext.Equals(stringSymbol));
+        }
+
         private static CSharpCompilation CreateBasicCompilation(string text)
         {
             return CSharpCompilation.Create("something",
