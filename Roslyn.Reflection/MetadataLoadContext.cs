@@ -67,7 +67,7 @@ namespace Roslyn.Reflection
             return null;
         }
 
-        public TMember GetOrCreateSymbol<TMember>(ISymbol symbol) where TMember : class
+        public TMember GetOrCreate<TMember>(ISymbol symbol) where TMember : class
         {
             if (symbol is null)
             {
