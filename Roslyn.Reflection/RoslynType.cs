@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 
 #nullable disable
@@ -657,33 +658,26 @@ namespace Roslyn.Reflection
 
         public override bool Equals(object o)
         {
-            if (o is RoslynType rt)
+            var otherTypeSymbol = o switch
             {
-                return _typeSymbol.Equals(rt._typeSymbol, SymbolEqualityComparer.Default);
-            }
-            else if (o is Type t && _metadataLoadContext.ResolveType(t) is RoslynType rtt)
-            {
-                return _typeSymbol.Equals(rtt._typeSymbol, SymbolEqualityComparer.Default);
-            }
-            else if (o is ITypeSymbol ts)
-            {
-                return _typeSymbol.Equals(ts, SymbolEqualityComparer.Default);
-            }
+                RoslynType rt => rt._typeSymbol,
+                Type t when _metadataLoadContext.ResolveType(t) is RoslynType rtt => rtt._typeSymbol,
+                ITypeSymbol t => t,
+                _ => null
+            };
 
-            return false;
+            return _typeSymbol.Equals(otherTypeSymbol, SymbolEqualityComparer.Default);
         }
 
         public override bool Equals(Type o)
         {
-            if (o is RoslynType rt)
+            var otherTypeSymbol = o switch
             {
-                return _typeSymbol.Equals(rt._typeSymbol, SymbolEqualityComparer.Default);
-            }
-            else if (_metadataLoadContext.ResolveType(o) is RoslynType rtt)
-            {
-                return _typeSymbol.Equals(rtt._typeSymbol, SymbolEqualityComparer.Default);
-            }
-            return false;
+                RoslynType rt => rt._typeSymbol,
+                var t when _metadataLoadContext.ResolveType(t) is RoslynType rtt => rtt._typeSymbol,
+                _ => null
+            };
+            return _typeSymbol.Equals(otherTypeSymbol, SymbolEqualityComparer.Default);
         }
     }
 }
