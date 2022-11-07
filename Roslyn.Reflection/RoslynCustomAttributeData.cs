@@ -25,12 +25,16 @@ namespace Roslyn.Reflection
                 {
                     IPropertySymbol property => property.AsPropertyInfo(metadataLoadContext),
                     IFieldSymbol field => field.AsFieldInfo(metadataLoadContext),
-                    IMethodSymbol ctor when ctor.MethodKind == MethodKind.Constructor => new RoslynConstructorInfo(ctor, metadataLoadContext),
+                    IMethodSymbol ctor when ctor.MethodKind == MethodKind.Constructor => ctor.AsConstructorInfo(metadataLoadContext),
                     IMethodSymbol method => method.AsMethodInfo(metadataLoadContext),
                     ITypeSymbol typeSymbol => typeSymbol.AsType(metadataLoadContext),
-                    _ => new RoslynMemberInfo(member, metadataLoadContext)
+                    _ => null,
                 };
-                namedArguments.Add(new CustomAttributeNamedArgument(memberInfo, na.Value.Value));
+
+                if (memberInfo is not null)
+                {
+                    namedArguments.Add(new CustomAttributeNamedArgument(memberInfo, na.Value.Value));
+                }
             }
 
             var constructorArguments = new List<CustomAttributeTypedArgument>();
@@ -44,7 +48,7 @@ namespace Roslyn.Reflection
                 object value = ca.Kind == TypedConstantKind.Array ? ca.Values : ca.Value;
                 constructorArguments.Add(new CustomAttributeTypedArgument(ca.Type.AsType(metadataLoadContext), value));
             }
-            Constructor = new RoslynConstructorInfo(a.AttributeConstructor, metadataLoadContext);
+            Constructor = a.AttributeConstructor.AsConstructorInfo(metadataLoadContext);
             NamedArguments = namedArguments;
             ConstructorArguments = constructorArguments;
         }

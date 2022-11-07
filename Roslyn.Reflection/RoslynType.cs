@@ -101,7 +101,7 @@ namespace Roslyn.Reflection
                 }
 
                 ctors ??= new();
-                ctors.Add(new RoslynConstructorInfo(c, _metadataLoadContext));
+                ctors.Add(c.AsConstructorInfo(_metadataLoadContext));
             }
             return ctors?.ToArray() ?? Array.Empty<ConstructorInfo>();
         }

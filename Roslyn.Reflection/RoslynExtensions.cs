@@ -8,18 +8,6 @@ namespace Roslyn.Reflection
 {
     public static class RoslynExtensions
     {
-        public static Assembly AsAssembly(this IAssemblySymbol assemblySymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<Assembly>(assemblySymbol);
-
-        public static Type AsType(this ITypeSymbol typeSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<Type>(typeSymbol);
-
-        public static ParameterInfo AsParameterInfo(this IParameterSymbol parameterSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<ParameterInfo>(parameterSymbol);
-
-        public static MethodInfo AsMethodInfo(this IMethodSymbol methodSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<MethodInfo>(methodSymbol);
-
-        public static PropertyInfo AsPropertyInfo(this IPropertySymbol propertySymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<PropertyInfo>(propertySymbol);
-
-        public static FieldInfo AsFieldInfo(this IFieldSymbol fieldSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<FieldInfo>(fieldSymbol);
-
         public static IMethodSymbol GetMethodSymbol(this MethodInfo methodInfo) => (methodInfo as RoslynMethodInfo)?.MethodSymbol;
 
         public static IPropertySymbol GetPropertySymbol(this PropertyInfo property) => (property as RoslynPropertyInfo)?.PropertySymbol;
@@ -28,6 +16,23 @@ namespace Roslyn.Reflection
         public static IParameterSymbol GetParameterSymbol(this ParameterInfo parameterInfo) => (parameterInfo as RoslynParameterInfo)?.ParameterSymbol;
 
         public static ITypeSymbol GetTypeSymbol(this Type type) => (type as RoslynType)?.TypeSymbol;
+    }
+
+    internal static class RoslynInternalExtensions
+    {
+        public static Assembly AsAssembly(this IAssemblySymbol assemblySymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<Assembly>(assemblySymbol);
+
+        public static Type AsType(this ITypeSymbol typeSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<Type>(typeSymbol);
+
+        public static ParameterInfo AsParameterInfo(this IParameterSymbol parameterSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<ParameterInfo>(parameterSymbol);
+
+        public static ConstructorInfo AsConstructorInfo(this IMethodSymbol methodSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<ConstructorInfo>(methodSymbol);
+
+        public static MethodInfo AsMethodInfo(this IMethodSymbol methodSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<MethodInfo>(methodSymbol);
+
+        public static PropertyInfo AsPropertyInfo(this IPropertySymbol propertySymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<PropertyInfo>(propertySymbol);
+
+        public static FieldInfo AsFieldInfo(this IFieldSymbol fieldSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<FieldInfo>(fieldSymbol);
 
         public static IEnumerable<ITypeSymbol> BaseTypes(this ITypeSymbol typeSymbol)
         {

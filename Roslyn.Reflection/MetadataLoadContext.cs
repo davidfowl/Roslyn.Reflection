@@ -79,6 +79,7 @@ namespace Roslyn.Reflection
                 ITypeSymbol t => new RoslynType(t, this),
                 IFieldSymbol f => new RoslynFieldInfo(f, this),
                 IPropertySymbol p => new RoslynPropertyInfo(p, this),
+                IMethodSymbol c when c.MethodKind == MethodKind.Constructor => new RoslynConstructorInfo(c, this),
                 IMethodSymbol m => new RoslynMethodInfo(m, this),
                 IParameterSymbol param => new RoslynParameterInfo(param, this),
                 IAssemblySymbol a => new RoslynAssembly(a, this),

@@ -18,38 +18,7 @@ namespace Roslyn.Reflection
             _method = method;
             _metadataLoadContext = metadataLoadContext;
 
-            if (method.IsAbstract)
-            {
-                Attributes |= MethodAttributes.Abstract | MethodAttributes.Virtual;
-            }
-
-            if (method.IsStatic)
-            {
-                Attributes |= MethodAttributes.Static;
-            }
-
-            if (method.IsVirtual || method.IsOverride)
-            {
-                Attributes |= MethodAttributes.Virtual;
-            }
-
-            switch (method.DeclaredAccessibility)
-            {
-                case Accessibility.Public:
-                    Attributes |= MethodAttributes.Public;
-                    break;
-                case Accessibility.Private:
-                    Attributes |= MethodAttributes.Private;
-                    break;
-                case Accessibility.Internal:
-                    Attributes |= MethodAttributes.Assembly;
-                    break;
-            }
-
-            if (method.MethodKind != MethodKind.Ordinary)
-            {
-                Attributes |= MethodAttributes.SpecialName;
-            }
+            Attributes = SharedUtilities.GetMethodAttributes(method);
         }
 
         public override ICustomAttributeProvider ReturnTypeCustomAttributes => throw new NotImplementedException();

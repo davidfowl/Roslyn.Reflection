@@ -16,11 +16,12 @@ namespace Roslyn.Reflection
         {
             _ctor = ctor;
             _metadataLoadContext = metadataLoadContext;
+            Attributes = SharedUtilities.GetMethodAttributes(ctor);
         }
 
         public override Type DeclaringType => _ctor.ContainingType.AsType(_metadataLoadContext);
 
-        public override MethodAttributes Attributes => throw new NotImplementedException();
+        public override MethodAttributes Attributes { get; }
 
         public override RuntimeMethodHandle MethodHandle => throw new NotSupportedException();
 
@@ -62,12 +63,13 @@ namespace Roslyn.Reflection
 
         public override ParameterInfo[] GetParameters()
         {
-            var parameters = new List<ParameterInfo>();
+            List<ParameterInfo> parameters = default;
             foreach (var p in _ctor.Parameters)
             {
+                parameters ??= new();
                 parameters.Add(p.AsParameterInfo(_metadataLoadContext));
             }
-            return parameters.ToArray();
+            return parameters?.ToArray() ?? Array.Empty<ParameterInfo>();
         }
 
         public override object Invoke(BindingFlags invokeAttr, Binder binder, object[] parameters, CultureInfo culture)
