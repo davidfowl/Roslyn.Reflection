@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -9,6 +10,7 @@ namespace Roslyn.Reflection
     public class MetadataLoadContext
     {
         private readonly Compilation _compilation;
+        private readonly ConcurrentDictionary<ISymbol, object> _cache = new(SymbolEqualityComparer.Default);
 
         public MetadataLoadContext(Compilation compilation)
         {
@@ -63,6 +65,25 @@ namespace Roslyn.Reflection
             }
 
             return null;
+        }
+
+        public TMember GetOrCreateSymbol<TMember>(ISymbol symbol) where TMember : class
+        {
+            if (symbol is null)
+            {
+                return null;
+            }
+
+            return (TMember)_cache.GetOrAdd(symbol, s => s switch
+            {
+                ITypeSymbol t => new RoslynType(t, this),
+                IFieldSymbol f => new RoslynFieldInfo(f, this),
+                IPropertySymbol p => new RoslynPropertyInfo(p, this),
+                IMethodSymbol m => new RoslynMethodInfo(m, this),
+                IParameterSymbol param => new RoslynParameterInfo(param, this),
+                IAssemblySymbol a => new RoslynAssembly(a, this),
+                _ => null
+            });
         }
 
         public TMember ResolveMember<TMember>(TMember memberInfo) where TMember : MemberInfo

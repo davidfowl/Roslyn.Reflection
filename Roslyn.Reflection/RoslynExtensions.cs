@@ -8,17 +8,17 @@ namespace Roslyn.Reflection
 {
     public static class RoslynExtensions
     {
-        public static Assembly AsAssembly(this IAssemblySymbol assemblySymbol, MetadataLoadContext metadataLoadContext) => assemblySymbol == null ? null : new RoslynAssembly(assemblySymbol, metadataLoadContext);
+        public static Assembly AsAssembly(this IAssemblySymbol assemblySymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<Assembly>(assemblySymbol);
 
-        public static Type AsType(this ITypeSymbol typeSymbol, MetadataLoadContext metadataLoadContext) => typeSymbol == null ? null : new RoslynType(typeSymbol, metadataLoadContext);
+        public static Type AsType(this ITypeSymbol typeSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<Type>(typeSymbol);
 
-        public static ParameterInfo AsParameterInfo(this IParameterSymbol parameterSymbol, MetadataLoadContext metadataLoadContext) => parameterSymbol == null ? null : new RoslynParameterInfo(parameterSymbol, metadataLoadContext);
+        public static ParameterInfo AsParameterInfo(this IParameterSymbol parameterSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<ParameterInfo>(parameterSymbol);
 
-        public static MethodInfo AsMethodInfo(this IMethodSymbol methodSymbol, MetadataLoadContext metadataLoadContext) => methodSymbol == null ? null : new RoslynMethodInfo(methodSymbol, metadataLoadContext);
+        public static MethodInfo AsMethodInfo(this IMethodSymbol methodSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<MethodInfo>(methodSymbol);
 
-        public static PropertyInfo AsPropertyInfo(this IPropertySymbol propertySymbol, MetadataLoadContext metadataLoadContext) => propertySymbol == null ? null : new RoslynPropertyInfo(propertySymbol, metadataLoadContext);
+        public static PropertyInfo AsPropertyInfo(this IPropertySymbol propertySymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<PropertyInfo>(propertySymbol);
 
-        public static FieldInfo AsFieldInfo(this IFieldSymbol fieldSymbol, MetadataLoadContext metadataLoadContext) => fieldSymbol == null ? null : new RoslynFieldInfo(fieldSymbol, metadataLoadContext);
+        public static FieldInfo AsFieldInfo(this IFieldSymbol fieldSymbol, MetadataLoadContext metadataLoadContext) => metadataLoadContext.GetOrCreateSymbol<FieldInfo>(fieldSymbol);
 
         public static IMethodSymbol GetMethodSymbol(this MethodInfo methodInfo) => (methodInfo as RoslynMethodInfo)?.MethodSymbol;
 

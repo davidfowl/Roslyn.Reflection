@@ -65,7 +65,7 @@ namespace Roslyn.Reflection
             var parameters = new List<ParameterInfo>();
             foreach (var p in _ctor.Parameters)
             {
-                parameters.Add(new RoslynParameterInfo(p, _metadataLoadContext));
+                parameters.Add(p.AsParameterInfo(_metadataLoadContext));
             }
             return parameters.ToArray();
         }

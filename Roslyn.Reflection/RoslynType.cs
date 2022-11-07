@@ -22,7 +22,7 @@ namespace Roslyn.Reflection
             _isByRef = isByRef;
         }
 
-        public override Assembly Assembly => new RoslynAssembly(_typeSymbol.ContainingAssembly, _metadataLoadContext);
+        public override Assembly Assembly => _typeSymbol.ContainingAssembly.AsAssembly(_metadataLoadContext);
 
         public override string AssemblyQualifiedName => throw new NotImplementedException();
 
@@ -194,7 +194,7 @@ namespace Roslyn.Reflection
                 }
 
                 fields ??= new();
-                fields.Add(new RoslynFieldInfo(fieldSymbol, _metadataLoadContext));
+                fields.Add(fieldSymbol.AsFieldInfo(_metadataLoadContext));
             }
 
             return fields?.ToArray() ?? Array.Empty<FieldInfo>();

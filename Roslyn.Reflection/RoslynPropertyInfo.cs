@@ -60,7 +60,7 @@ namespace Roslyn.Reflection
             foreach (var p in _property.Parameters)
             {
                 parameters ??= new();
-                parameters.Add(new RoslynParameterInfo(p, _metadataLoadContext));
+                parameters.Add(p.AsParameterInfo(_metadataLoadContext));
             }
             return parameters?.ToArray() ?? Array.Empty<ParameterInfo>();
         }
