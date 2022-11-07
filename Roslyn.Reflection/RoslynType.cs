@@ -241,6 +241,7 @@ namespace Roslyn.Reflection
                     {
                         IFieldSymbol f => f.AsFieldInfo(_metadataLoadContext),
                         IPropertySymbol p => p.AsPropertyInfo(_metadataLoadContext),
+                        IMethodSymbol c when c.MethodKind == MethodKind.Constructor => c.AsConstructorInfo(_metadataLoadContext),
                         IMethodSymbol m => m.AsMethodInfo(_metadataLoadContext),
                         _ => null
                     };
