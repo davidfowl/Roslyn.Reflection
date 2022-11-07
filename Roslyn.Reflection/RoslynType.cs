@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 
 #nullable disable
@@ -661,8 +660,8 @@ namespace Roslyn.Reflection
             var otherTypeSymbol = o switch
             {
                 RoslynType rt => rt._typeSymbol,
-                Type t when _metadataLoadContext.ResolveType(t) is RoslynType rtt => rtt._typeSymbol,
-                ITypeSymbol t => t,
+                Type t when _metadataLoadContext.ResolveType(t) is RoslynType rt => rt._typeSymbol,
+                ITypeSymbol ts => ts,
                 _ => null
             };
 
@@ -674,7 +673,7 @@ namespace Roslyn.Reflection
             var otherTypeSymbol = o switch
             {
                 RoslynType rt => rt._typeSymbol,
-                var t when _metadataLoadContext.ResolveType(t) is RoslynType rtt => rtt._typeSymbol,
+                Type t when _metadataLoadContext.ResolveType(t) is RoslynType rt => rt._typeSymbol,
                 _ => null
             };
             return _typeSymbol.Equals(otherTypeSymbol, SymbolEqualityComparer.Default);
