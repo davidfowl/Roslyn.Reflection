@@ -639,15 +639,20 @@ namespace Roslyn.Reflection
 
         public override bool IsAssignableFrom(Type c)
         {
-            if (c is RoslynType rt)
+            var otherTypeSymbol = c switch
             {
-                return rt._typeSymbol.AllInterfaces.Contains(_typeSymbol, SymbolEqualityComparer.Default) || (rt.NamedTypeSymbol != null && rt.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol, SymbolEqualityComparer.Default));
-            }
-            else if (_metadataLoadContext.ResolveType(c) is RoslynType rtt)
+                RoslynType rt => rt._typeSymbol,
+                Type t when _metadataLoadContext.ResolveType(t) is RoslynType rt => rt._typeSymbol,
+                _ => null
+            };
+
+            if (otherTypeSymbol is null)
             {
-                return rtt._typeSymbol.AllInterfaces.Contains(_typeSymbol, SymbolEqualityComparer.Default) || (rtt.NamedTypeSymbol != null && rtt.NamedTypeSymbol.BaseTypes().Contains(_typeSymbol, SymbolEqualityComparer.Default));
+                return false;
             }
-            return false;
+
+            return otherTypeSymbol.AllInterfaces.Contains(_typeSymbol, SymbolEqualityComparer.Default) ||
+                   (otherTypeSymbol is INamedTypeSymbol ns && ns.BaseTypes().Contains(_typeSymbol, SymbolEqualityComparer.Default));
         }
 
         public override int GetHashCode()

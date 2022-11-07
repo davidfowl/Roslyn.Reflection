@@ -38,6 +38,36 @@ interface IContract { }
         }
 
         [Fact]
+        public void IsAssignableFrom()
+        {
+            var compilation = CreateBasicCompilation(@"
+sealed class Derived : Base { }
+
+abstract class Base : IContract { }
+
+interface IContract { }
+
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+
+            // Resolve the type by name
+            var derivedType = metadataLoadContext.ResolveType("Derived");
+            var baseType = metadataLoadContext.ResolveType("Base");
+            var interfaceType = metadataLoadContext.ResolveType("IContract");
+
+            Assert.NotNull(derivedType);
+            Assert.NotNull(baseType);
+            Assert.NotNull(interfaceType);
+
+            Assert.True(interfaceType.IsAssignableFrom(baseType));
+            Assert.True(interfaceType.IsAssignableFrom(derivedType));
+            Assert.True(baseType.IsAssignableFrom(derivedType));
+
+            Assert.True(baseType.IsAssignableTo(interfaceType));
+            Assert.True(derivedType.IsAssignableTo(interfaceType));
+        }
+
+        [Fact]
         public void GetInterfaceByName()
         {
             var compilation = CreateBasicCompilation(@"
