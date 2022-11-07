@@ -486,6 +486,7 @@ class TopLevel
             Assert.False(typeof(string) == stringInContext);
             Assert.False(stringInContext == typeof(string));
             Assert.Same(stringSymbol, stringInContext.GetTypeSymbol());
+            Assert.NotSame(stringSymbol.AsType(metadataLoadContext), stringInContext);
 
             Assert.True(stringInContext.Equals(typeof(string)));
             Assert.True(stringInContext.Equals(stringSymbol));
