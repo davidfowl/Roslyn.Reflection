@@ -465,7 +465,7 @@ namespace Roslyn.Reflection
 
                 if (valid)
                 {
-                    return new RoslynConstructorInfo(method, _metadataLoadContext);
+                    return method.AsConstructorInfo(_metadataLoadContext);
                 }
             }
 
