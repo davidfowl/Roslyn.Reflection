@@ -1,0 +1,47 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Setup .NET Core SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 7.0.x
+        dotnet-quality: 'ga'
+
+    - uses: aarnott/nbgv@v0.4.0
+      with:
+        setAllVars: true
+     
+    - name: dotnet build
+      run: dotnet build Roslyn.Reflection.sln -c Release    
+
+    - name: dotnet test
+      run: dotnet test Roslyn.Reflection.sln -c Release --no-build
+
+    - name: dotnet pack
+      run: dotnet pack Roslyn.Reflection.sln -c Release --no-build --include-source --include-symbols
+
+    - name: setup nuget
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: NuGet/setup-nuget@v1.0.5
+      with:
+        nuget-version: latest
+
+    - name: Set API key
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: nuget setapikey ${{ secrets.FEEDZ_TOKEN }} -Config nuget.config -Source https://f.feedz.io/davidfowl/roslyn-reflection/nuget/index.json
+
+    - name: Set symbols API key
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: nuget setapikey ${{ secrets.FEEDZ_TOKEN }} -Config nuget.config -Source https://f.feedz.io/davidfowl/roslyn-reflection/symbols
+
+    - name: push packages
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: dotnet nuget push **/*.nupkg -s https://f.feedz.io/davidfowl/roslyn-reflection/nuget/index.json -ss https://f.feedz.io/davidfowl/roslyn-reflection/symbols --skip-duplicate

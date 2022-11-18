@@ -1,19 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <PackageId>Roslyn.Reflection.Sources</PackageId>
+        <PackageId>Roslyn.Reflection</PackageId>
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>9.0</LangVersion>
         <PackageDescription></PackageDescription>
         <Authors>David Fowler</Authors>
         <Description>A reflection implementation over the Roslyn Symol APIs</Description>
-        <IncludeBuildOutput>false</IncludeBuildOutput>
     </PropertyGroup>
 
-    <ItemGroup>
-        <Compile Update="*.cs" Pack="true" PackagePath="contentFiles/any/any" />
-    </ItemGroup>
-    
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.3.1" PrivateAssets="all" />
     </ItemGroup>
