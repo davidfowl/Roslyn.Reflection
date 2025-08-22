@@ -626,11 +626,15 @@ namespace Roslyn.Reflection
                 SpecialType.System_UInt64 => true,
                 SpecialType.System_Single => true,
                 SpecialType.System_Double => true,
-                SpecialType.System_String => true,
                 SpecialType.System_IntPtr => true,
                 SpecialType.System_UIntPtr => true,
                 _ => false
             };
+        }
+
+        protected override bool IsValueTypeImpl()
+        {
+            return _typeSymbol.IsValueType;
         }
 
         public override string ToString()
