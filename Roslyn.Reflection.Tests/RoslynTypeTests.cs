@@ -504,6 +504,42 @@ class TopLevel
             Assert.Equal(isPrimitive, typeInContext.IsPrimitive);
         }
 
+        [Theory]
+        [InlineData(typeof(int), true)]
+        [InlineData(typeof(DateTime), true)]
+        [InlineData(typeof(bool), true)]
+        [InlineData(typeof(string), false)]
+        [InlineData(typeof(object), false)]
+        public void IsValueType(Type type, bool isValueType)
+        {
+            var compilation = CreateBasicCompilation(@"
+struct CustomStruct { public int X; }
+enum CustomEnum { A, B, C }
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+            var typeInContext = metadataLoadContext.ResolveType(type);
+
+            Assert.Equal(isValueType, typeInContext.IsValueType);
+        }
+
+        [Fact]
+        public void IsValueTypeForCustomStruct()
+        {
+            var compilation = CreateBasicCompilation(@"
+struct CustomStruct { public int X; }
+enum CustomEnum { A, B, C }
+");
+            var metadataLoadContext = new MetadataLoadContext(compilation);
+            
+            var customStruct = metadataLoadContext.ResolveType("CustomStruct");
+            var customEnum = metadataLoadContext.ResolveType("CustomEnum");
+
+            Assert.NotNull(customStruct);
+            Assert.NotNull(customEnum);
+            Assert.True(customStruct.IsValueType, "Custom struct should be a value type");
+            Assert.True(customEnum.IsValueType, "Custom enum should be a value type");
+        }
+
         [Fact]
         public void TypeEqualityTest()
         {
